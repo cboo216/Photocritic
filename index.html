@@ -503,7 +503,7 @@ Respond ONLY with valid JSON — no markdown, no backticks, nothing else:
 
       const data = await res.json();
 
-      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      if (data.error) throw new Error(JSON.stringify(data.error));
       if (!data.content || !data.content.length) throw new Error('Empty response');
 
       const raw = data.content.map(b => b.text || '').join('').trim();
