@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Critic</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Serif+Display&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --border: #e2ddd8;
+    --text: #1a1714;
+    --muted: #7a746e;
+    --accent: #1a1714;
+    --green: #2d6a2d;
+    --amber: #8a5a00;
+    --red: #8a2020;
+    --green-bg: #edf5ed;
+    --amber-bg: #fdf5e6;
+    --red-bg: #fdf0f0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+
+  header p {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  select, textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+  }
+
+  select:focus, textarea:focus {
+    border-color: var(--text);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 72px;
+    line-height: 1.5;
+  }
+
+  .field { margin-bottom: 1.25rem; }
+  .field:last-child { margin-bottom: 0; }
+
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    background: var(--bg);
+  }
+
+  .upload-zone:hover {
+    background: #f0ede9;
+    border-color: #c5bfba;
+  }
+
+  .upload-zone.has-image {
+    padding: 0;
+    border-style: solid;
+    overflow: hidden;
+  }
+
+  .upload-zone img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+  }
+
+  .upload-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .upload-hint {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .error-msg {
+    display: none;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--red-bg);
+    border: 1px solid #f0c0c0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--red);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 0.25rem;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Results */
+  .result-card { display: none; }
+
+  .score-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .score-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  .score-summary {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .context-note {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .dims {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+  }
+
+  .dim {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .dim-name {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .dim-score {
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .dim-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 6px;
+  }
+
+  .dim-fill {
+    height: 3px;
+    border-radius: 2px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .feedback-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.25rem;
+  }
+
+  .feedback-list li {
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .feedback-list li:last-child { border-bottom: none; }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  .try-box {
+    background: var(--bg);
+    border-left: 3px solid var(--text);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .loading-state {
+    display: none;
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--text);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .reset-btn:hover { border-color: var(--text); color: var(--text); }
+
+  @media (max-width: 500px) {
+    .dims { grid-template-columns: 1fr; }
+    .score-big { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Photo Critic</h1>
+    <p>Honest feedback from an AI photography mentor</p>
+  </header>
+
+  <!-- Form -->
+  <div id="form-view">
+    <div class="card">
+      <div class="field">
+        <label>Your photo</label>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <div class="upload-label">Upload a photo</div>
+          <div class="upload-hint">JPG · PNG · WEBP — max 5MB</div>
+        </div>
+        <div class="error-msg" id="error-msg"></div>
+        <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" style="display:none">
+      </div>
+
+      <div class="field">
+        <label>Photo type</label>
+        <select id="photo-type">
+          <option value="">Select a category</option>
+          <option>Portrait / People</option>
+          <option>Lifestyle</option>
+          <option>Street & Urban</option>
+          <option>Landscape & Nature</option>
+          <option>Animal & Wildlife</option>
+          <option>Architecture</option>
+          <option>Travel & Documentary</option>
+          <option>Sport & Action</option>
+          <option>Still Life</option>
+          <option>Abstract & Experimental</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Shooting conditions <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea id="conditions" placeholder="e.g. Handheld at dusk, ISO 3200, kids were moving fast"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Creative intent <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea id="intent" placeholder="e.g. I wanted to capture the energy of the moment"></textarea>
+      </div>
+
+      <button class="btn" id="submit-btn" disabled onclick="analyse()">Analyse my photo</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" id="loading-view">
+    <div class="spinner"></div>
+    Analysing your photo…
+  </div>
+
+  <!-- Results -->
+  <div class="result-card card" id="result-view"></div>
+
+</div>
+
+<script>
+  let imageBase64 = null;
+  let imageMimeType = null;
+
+  const BLOCKED = ['raw','cr2','cr3','nef','arw','orf','rw2','dng','raf','pef','srw','x3f','heic','heif'];
+  const MAX_BYTES = 5 * 1024 * 1024;
+
+  document.getElementById('file-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const errorEl = document.getElementById('error-msg');
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (BLOCKED.includes(ext)) {
+      showError('Please export your photo as JPG, PNG, or WEBP first.');
+      this.value = ''; return;
+    }
+
+    if (file.size > MAX_BYTES) {
+      showError('File is too large. Please use a photo under 5MB.');
+      this.value = ''; return;
+    }
+
+    errorEl.style.display = 'none';
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const dataUrl = ev.target.result;
+      imageBase64 = dataUrl.split(',')[1];
+      imageMimeType = file.type || 'image/jpeg';
+
+      const zone = document.getElementById('upload-zone');
+      zone.classList.add('has-image');
+      zone.innerHTML = '<img src="' + dataUrl + '" alt="Your photo">';
+      checkReady();
+    };
+    reader.onerror = function() {
+      showError('Could not read this file. Please try another.');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('photo-type').addEventListener('change', checkReady);
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function checkReady() {
+    const hasImage = !!imageBase64;
+    const hasType = !!document.getElementById('photo-type').value;
+    document.getElementById('submit-btn').disabled = !(hasImage && hasType);
+  }
+
+  async function analyse() {
+    const photoType  = document.getElementById('photo-type').value;
+    const conditions = document.getElementById('conditions').value.trim() || 'not specified';
+    const intent     = document.getElementById('intent').value.trim() || 'not specified';
+
+    document.getElementById('form-view').style.display = 'none';
+    document.getElementById('loading-view').style.display = 'block';
+
+    const systemPrompt = `You are an expert photography mentor with 20+ years of experience across fine art, reportage, and portrait photography. You evaluate images submitted by intermediate amateur photographers who want to genuinely improve.
+
+Your role: honest, direct, constructive. Never flatter. Never crush. Tell the truth in a way that motivates progress.
+
+EVALUATION RULES
+- Never penalize deliberate creative choices — distinguish intentional decisions from technical mistakes.
+- Adjust expectations to shooting conditions.
+- If creative intent was ambitious but not fully achieved, acknowledge the vision and explain the gap.
+- If the shot is a souvenir/memory, evaluate with warmth but still with honesty.
+
+SCORE each dimension from 1 to 10:
+1. COMPOSITION & FRAMING: Rule of thirds, leading lines, balance, negative space, depth.
+2. LIGHT & EXPOSURE: Light quality, exposure accuracy, highlight/shadow management.
+3. SHARPNESS & TECHNIQUE: Focus accuracy, depth of field, motion blur, camera shake.
+4. COLOR & POST-PROCESSING: Color harmony, white balance, saturation, contrast.
+5. STORYTELLING & EMOTION: Clear subject, narrative, feeling, impact.
+6. ORIGINALITY & CREATIVITY: Fresh perspective, personal vision, transcends clichés.
+
+Respond ONLY with valid JSON — no markdown, no backticks, nothing else:
+{"overall_score":<1-10>,"overall_summary":"<one sentence>","context_acknowledged":"<one sentence>","dimensions":{"composition":<1-10>,"light":<1-10>,"sharpness":<1-10>,"color":<1-10>,"storytelling":<1-10>,"originality":<1-10>},"what_works":["<point>","<point>","<point>"],"what_to_improve":["<point>","<point>","<point>"],"one_thing_to_try":"<concrete exercise>"}`;
+
+    const payload = {
+      model: "claude-opus-4-5",
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: "PHOTO_TYPE: " + photoType + "\nCONDITIONS: " + conditions + "\nINTENT: " + intent + "\n\nPlease evaluate this photograph." },
+          { type: "image", source: { type: "base64", media_type: imageMimeType, data: imageBase64 } }
+        ]
+      }]
+    };
+
+    try {
+      const res = await fetch('/.netlify/functions/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Server error ' + res.status);
+      }
+
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+      if (!data.content || !data.content.length) throw new Error('Empty response');
+
+      const raw = data.content.map(b => b.text || '').join('').trim();
+      let result;
+      try { result = JSON.parse(raw); }
+      catch { throw new Error('Could not parse response. Raw: ' + raw.slice(0, 120)); }
+
+      renderResult(result);
+    } catch(err) {
+      document.getElementById('loading-view').style.display = 'none';
+      document.getElementById('form-view').style.display = 'block';
+      showError('Something went wrong: ' + err.message);
+    }
+  }
+
+  function scoreColor(s) {
+    if (s >= 8) return { text: '#2d6a2d', bg: '#edf5ed' };
+    if (s >= 6) return { text: '#8a5a00', bg: '#fdf5e6' };
+    return { text: '#8a2020', bg: '#fdf0f0' };
+  }
+
+  function renderResult(r) {
+    document.getElementById('loading-view').style.display = 'none';
+
+    const dims = [
+      { key: 'composition', label: 'Composition' },
+      { key: 'light',       label: 'Light' },
+      { key: 'sharpness',   label: 'Sharpness' },
+      { key: 'color',       label: 'Color' },
+      { key: 'storytelling',label: 'Storytelling' },
+      { key: 'originality', label: 'Originality' }
+    ];
+
+    const oc = scoreColor(r.overall_score);
+
+    const dimHTML = dims.map(d => {
+      const s = r.dimensions[d.key];
+      const c = scoreColor(s);
+      return `<div class="dim">
+        <div class="dim-name">${d.label}</div>
+        <div class="dim-score" style="color:${c.text}">${s}/10</div>
+        <div class="dim-bar"><div class="dim-fill" style="width:${s*10}%;background:${c.text}"></div></div>
+      </div>`;
+    }).join('');
+
+    const works   = r.what_works.map(w => `<li><span class="dot" style="background:#2d6a2d"></span>${w}</li>`).join('');
+    const improve = r.what_to_improve.map(w => `<li><span class="dot" style="background:#8a5a00"></span>${w}</li>`).join('');
+
+    document.getElementById('result-view').innerHTML = `
+      <div class="score-row">
+        <div class="score-big" style="color:${oc.text}">${r.overall_score}/10</div>
+        <div class="score-summary">${r.overall_summary}</div>
+      </div>
+
+      <div class="context-note">${r.context_acknowledged}</div>
+
+      <div class="dims">${dimHTML}</div>
+
+      <div class="section-title">What works</div>
+      <ul class="feedback-list">${works}</ul>
+
+      <div class="section-title">What to improve</div>
+      <ul class="feedback-list">${improve}</ul>
+
+      <div class="section-title" style="margin-bottom:8px">One thing to try</div>
+      <div class="try-box">${r.one_thing_to_try}</div>
+
+      <button class="reset-btn" onclick="resetForm()">Analyse another photo</button>
+    `;
+
+    document.getElementById('result-view').style.display = 'block';
+  }
+
+  function resetForm() {
+    imageBase64 = null;
+    imageMimeType = null;
+    document.getElementById('file-input').value = '';
+    document.getElementById('photo-type').value = '';
+    document.getElementById('conditions').value = '';
+    document.getElementById('intent').value = '';
+    document.getElementById('error-msg').style.display = 'none';
+    const zone = document.getElementById('upload-zone');
+    zone.classList.remove('has-image');
+    zone.innerHTML = '<div class="upload-label">Upload a photo</div><div class="upload-hint">JPG · PNG · WEBP — max 5MB</div>';
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('result-view').style.display = 'none';
+    document.getElementById('result-view').innerHTML = '';
+    document.getElementById('form-view').style.display = 'block';
+  }
+</script>
+</body>
+</html>
