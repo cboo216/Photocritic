@@ -419,13 +419,27 @@
     const reader = new FileReader();
     reader.onload = function(ev) {
       const dataUrl = ev.target.result;
-      imageBase64 = dataUrl.split(',')[1];
-      imageMimeType = file.type || 'image/jpeg';
-
-      const zone = document.getElementById('upload-zone');
-      zone.classList.add('has-image');
-      zone.innerHTML = '<img src="' + dataUrl + '" alt="Your photo">';
-      checkReady();
+      const img = new Image();
+      img.onload = function() {
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const resized = canvas.toDataURL('image/jpeg', 0.8);
+        imageBase64 = resized.split(',')[1];
+        imageMimeType = 'image/jpeg';
+        const zone = document.getElementById('upload-zone');
+        zone.classList.add('has-image');
+        zone.innerHTML = '<img src="' + resized + '" alt="Your photo">';
+        checkReady();
+      };
+      img.onerror = function() { showError('Could not process this image.'); };
+      img.src = dataUrl;
     };
     reader.onerror = function() {
       showError('Could not read this file. Please try another.');
@@ -477,7 +491,7 @@ Respond ONLY with valid JSON — no markdown, no backticks, nothing else:
 {"overall_score":<1-10>,"overall_summary":"<one sentence>","context_acknowledged":"<one sentence>","dimensions":{"composition":<1-10>,"light":<1-10>,"sharpness":<1-10>,"color":<1-10>,"storytelling":<1-10>,"originality":<1-10>},"what_works":["<point>","<point>","<point>"],"what_to_improve":["<point>","<point>","<point>"],"one_thing_to_try":"<concrete exercise>"}`;
 
     const payload = {
-      model: "claude-opus-4-5",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 1024,
       system: systemPrompt,
       messages: [{
@@ -498,7 +512,7 @@ Respond ONLY with valid JSON — no markdown, no backticks, nothing else:
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Server error ' + res.status);
+        throw new Error(typeof err.error === 'string' ? err.error : JSON.stringify(err.error) || 'Server error ' + res.status);
       }
 
       const data = await res.json();
@@ -515,7 +529,7 @@ Respond ONLY with valid JSON — no markdown, no backticks, nothing else:
     } catch(err) {
       document.getElementById('loading-view').style.display = 'none';
       document.getElementById('form-view').style.display = 'block';
-      showError('Something went wrong: ' + err.message);
+      showError('Error: ' + (typeof err === 'string' ? err : err.message || JSON.stringify(err)));
     }
   }
 
