@@ -1,0 +1,8 @@
+[functions]
+  node_bundler = "esbuild"
+
+[build]
+  publish = "."
+
+[context.production.environment]
+  NODE_VERSION = "18"
