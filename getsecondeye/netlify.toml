@@ -1,8 +1,9 @@
 [functions]
+  directory = "netlify/functions"
   node_bundler = "esbuild"
 
 [build]
   publish = "."
 
 [context.production.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
