@@ -1,56 +1,55 @@
-exports.handler = async function (event) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
+// netlify/functions/analyze.js
+// Proxies the photo-critique request to the Anthropic API.
+// The API key is read from the ANTHROPIC_API_KEY environment variable
+// (set it in Netlify → Site settings → Environment variables — never hardcode it).
+
+export async function handler(event) {
+  // CORS / preflight (harmless if same-origin)
+  const cors = {
+    'content-type': 'application/json',
+    'access-control-allow-origin': '*',
+    'access-control-allow-headers': 'content-type',
+    'access-control-allow-methods': 'POST, OPTIONS'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: cors, body: '' };
+  }
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers: cors, body: JSON.stringify({ error: { message: 'Method Not Allowed' } }) };
   }
 
-  // Cause #1: catch a missing/empty env var explicitly.
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "ANTHROPIC_API_KEY is not set in the Netlify environment." })
-    };
+    // Surfaces as a clear message in your Network tab instead of a silent failure.
+    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: { message: 'Server is missing ANTHROPIC_API_KEY. Set it in Netlify env vars and redeploy.' } }) };
   }
 
   try {
-    const body = JSON.parse(event.body);
+    const payload = JSON.parse(event.body || '{}');
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01"
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        model: payload.model || 'claude-sonnet-4-20250514',
+        // Raised from 1000: the full six-dimension JSON response needs room,
+        // otherwise it gets truncated and JSON.parse fails on the client.
+        max_tokens: 2048,
+        system: payload.system,
+        messages: payload.messages
+      })
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    // Don't swallow upstream errors as a 200 — forward the real status + message.
-    if (!response.ok) {
-      console.error("Anthropic API error:", response.status, data);
-      return {
-        statusCode: response.status,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          error: data?.error?.message || "Upstream API error",
-          type: data?.error?.type || "api_error"
-        })
-      };
-    }
-
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    };
+    // Pass the real status + body straight through so client errors are visible.
+    return { statusCode: res.status, headers: cors, body: JSON.stringify(data) };
   } catch (err) {
-    console.error("Function error:", err);
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: err.message })
-    };
+    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: { message: String(err && err.message ? err.message : err) } }) };
   }
-};
+}
