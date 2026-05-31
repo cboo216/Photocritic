@@ -717,7 +717,7 @@
   <!-- HERO -->
   <section class="hero">
     <h1>How good is your <em>photography</em>, really?</h1>
-    <p>Upload any photo and get an honest score and feedback across six dimensions — composition, light, storytelling, and more — plus the one change that will improve it most. The candid critique friends and likes never give you, so you get better with every shot.</p>
+    <p>Upload any photo and get an honest score across six dimensions — composition, light, storytelling, and more — plus the single change that would improve it most. The candid feedback friends and likes never give you.</p>
   </section>
 
   <!-- FORM -->
@@ -1076,14 +1076,18 @@ async function submitPhoto() {
       })
     });
     const data = await response.json();
+    if (!response.ok || !data.content) {
+      throw new Error(data && data.error && data.error.message ? data.error.message : `HTTP ${response.status}`);
+    }
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
     renderResult(result, formatExif(detectedExif));
   } catch(err) {
+    console.error('Analyze failed:', err);
     resultView.innerHTML = `
       <div class="loading-state">
-        <div class="loading-text">Something went wrong. Please try again.</div>
+        <div class="loading-text">Error: ${err.message}</div>
       </div>
       <button class="btn-reset" onclick="resetForm()">Try again</button>`;
   }
