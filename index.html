@@ -958,6 +958,7 @@ let imageBase64 = null;
 let imageMimeType = 'image/jpeg';
 let detectedExif = {};
 
+const API_URL = 'https://secondeye-api.cedric-brule.workers.dev';
 const BLOCKED_EXT = ['raw','cr2','cr3','nef','arw','orf','rw2','dng','raf','pef','srw','x3f'];
 const MAX_PX = 1920;
 const MAX_BYTES = 4.5 * 1024 * 1024;
@@ -1065,7 +1066,7 @@ async function submitPhoto() {
   ];
 
   try {
-    const response = await fetch('/.netlify/functions/analyze', {
+    const response = await fetch(`${API_URL}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
