@@ -36,7 +36,7 @@ export async function handler(event) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: payload.model || 'claude-sonnet-4-20250514',
+        model: payload.model || 'claude-sonnet-4-6',
         // Raised from 1000: the full six-dimension JSON response needs room,
         // otherwise it gets truncated and JSON.parse fails on the client.
         max_tokens: 2048,
