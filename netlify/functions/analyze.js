@@ -18,9 +18,8 @@ export default async (request) => {
 
     const data = await anthropicResponse.json();
     
-    // Log the response so we can see errors
-    console.log('Anthropic response status:', anthropicResponse.status);
-    console.log('Anthropic response data:', JSON.stringify(data).substring(0, 500));
+    // Log the FULL response
+    console.log('Full Anthropic response:', JSON.stringify(data));
 
     return new Response(JSON.stringify(data), {
       status: anthropicResponse.status,
