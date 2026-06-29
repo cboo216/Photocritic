@@ -5,6 +5,13 @@ export default async (request) => {
 
   try {
     const body = await request.json();
+    
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -23,7 +30,7 @@ export default async (request) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { 
+    return new Response(JSON.stringify({ error: err.message, stack: err.stack }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
