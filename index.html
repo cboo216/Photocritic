@@ -1054,16 +1054,16 @@ async function submitPhoto() {
       <div class="loading-text">Analysing your photo…</div>
     </div>`;
 
-  const userContent = [
-    {
-      type: 'text',
-      text: `<context>\n  PHOTO_TYPE: ${photoType}\n  CONDITIONS: ${conditions}\n  INTENT: ${intent}\n  EXIF: ${exifString}\n</context>\n\nPlease evaluate this photograph.`
-    },
-    {
-      type: 'image',
-      source: { type: 'base64', media_type: imageMimeType, data: imageBase64 }
-    }
-  ];
+const userContent = [
+  {
+    type: 'text',
+    text: `Photo Type: ${photoType}\nConditions: ${conditions}\nIntent: ${intent}\nEXIF: ${exifString}\n\nPlease evaluate this photograph.`
+  },
+  {
+    type: 'image',
+    source: { type: 'base64', media_type: imageMimeType, data: imageBase64 }
+  }
+];
 
   try {
     const response = await fetch(`${API_URL}`, {
