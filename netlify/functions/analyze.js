@@ -17,16 +17,13 @@ export default async (request) => {
     });
 
     const data = await anthropicResponse.json();
-    
-    // Log the FULL response
-    console.log('Full Anthropic response:', JSON.stringify(data));
 
-    return new Response(JSON.stringify(data), {
+    // Just return the content array directly—don't double-wrap it
+    return new Response(JSON.stringify({ content: data.content }), {
       status: anthropicResponse.status,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    console.error('Function error:', err.message);
     return new Response(JSON.stringify({ error: err.message }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' },
