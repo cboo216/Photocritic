@@ -592,14 +592,6 @@
       padding: 12px 14px;
     }
 
-    /* Dimension-specific subtle backgrounds */
-    .dim-composition { background: #F0F5FF; }  /* Light blue */
-    .dim-light { background: #FFFBF0; }        /* Light gold/warm */
-    .dim-sharpness { background: #F0FBF5; }    /* Light green */
-    .dim-color { background: #FFF0F5; }        /* Light rose */
-    .dim-storytelling { background: #F5F0FF; } /* Light lavender */
-    .dim-originality { background: #FFF5F0; }  /* Light coral/peach */
-
     .dim-name {
       font-size: 11px;
       color: var(--ink-light);
@@ -698,20 +690,19 @@
     .btn-reset {
       font-family: 'Montserrat', sans-serif;
       font-size: 13px;
-      color: var(--white);
-      background: var(--blue);
-      border: none;
+      color: var(--ink-mid);
+      background: none;
+      border: 1px solid var(--border-mid);
       border-radius: var(--radius-md);
-      padding: 12px 18px;
+      padding: 8px 18px;
       cursor: pointer;
-      margin-top: 0;
-      transition: background 0.15s;
-      font-weight: 600;
-      flex: 1;
+      margin-top: 28px;
+      transition: border-color 0.15s, color 0.15s;
     }
 
     .btn-reset:hover {
-      background: var(--blue-dark);
+      border-color: var(--blue-mid);
+      color: var(--blue);
     }
 
     /* ── PDF BUTTON ── */
@@ -722,7 +713,7 @@
       background: var(--blue);
       border: none;
       border-radius: var(--radius-md);
-      padding: 12px 18px;
+      padding: 8px 18px;
       cursor: pointer;
       transition: background 0.15s;
       font-weight: 600;
@@ -820,7 +811,7 @@
   <!-- HERO -->
   <section class="hero">
     <h1>Get brutally honest feedback on your photos.</h1>
-    <p>Upload any photo. Get scored across 6 dimensions + the one thing to try to improve.</p>
+    <p>Upload any photo. Get scored across 6 dimensions + the one-thing-to-try to improve.</p>
   </section>
 
   <!-- FORM -->
@@ -1261,8 +1252,7 @@ function renderResult(r, exifParts) {
 
   const dimCards = dims.map(d => {
     const s = r.dimensions[d.key];
-    const dimClass = `dim-${d.key}`;
-    return `<div class="dim-card ${dimClass}">
+    return `<div class="dim-card">
       <div class="dim-name">${d.label}</div>
       <div class="dim-score-row">
         <div class="dim-score-num" style="color:${scoreColor(s)}">${s}</div>
@@ -1300,6 +1290,7 @@ function renderResult(r, exifParts) {
 
       ${firstLookHTML}
       <div class="context-ack">${r.context_acknowledged}</div>
+      ${exifHTML}
 
       <div class="section-title">Dimension scores</div>
       <div class="dim-grid">${dimCards}</div>
@@ -1320,7 +1311,7 @@ function renderResult(r, exifParts) {
       </div>
 
       <div style="display: flex; gap: 12px; margin-top: 28px;">
-        <button class="btn-pdf" onclick="downloadCritiquePDF()">Download as PDF →</button>
+        <button class="btn-pdf" onclick="downloadCritiquePDF()">⬇ Download as PDF</button>
         <button class="btn-reset" onclick="resetForm()">Analyse another photo</button>
       </div>
     </div>`;
