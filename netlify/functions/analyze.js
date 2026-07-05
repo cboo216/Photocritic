@@ -18,7 +18,7 @@ export default async (request) => {
 
     const data = await anthropicResponse.json();
 
-    // Just return the content array directly—don't double-wrap it
+    // Return only the content array to prevent double-wrapping
     return new Response(JSON.stringify({ content: data.content }), {
       status: anthropicResponse.status,
       headers: { 'Content-Type': 'application/json' },
