@@ -698,6 +698,7 @@
       cursor: pointer;
       margin-top: 28px;
       transition: border-color 0.15s, color 0.15s;
+      flex: 1;
     }
 
     .btn-reset:hover {
@@ -1070,10 +1071,9 @@ function formatExif(exif) {
   const parts = [];
   if (exif.make || exif.model) parts.push([exif.make, exif.model].filter(Boolean).join(' '));
   if (exif.focalLength) parts.push(`${Math.round(exif.focalLength)}mm`);
-  if (exif.focalLength35mm) parts.push(`(${Math.round(exif.focalLength35mm)}mm eq.)`);
   if (exif.fNumber) parts.push(`f/${exif.fNumber.toFixed(1)}`);
   if (exif.exposureTime) { const et = exif.exposureTime; parts.push(et < 1 ? `1/${Math.round(1/et)}s` : `${et}s`); }
-  if (exif.iso) parts.push(`ISO ${exif.iso}`);
+  if (exif.iso && exif.iso >= 50) parts.push(`ISO ${exif.iso}`);
   return parts;
 }
 
