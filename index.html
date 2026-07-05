@@ -1300,7 +1300,6 @@ function renderResult(r, exifParts) {
 
       ${firstLookHTML}
       <div class="context-ack">${r.context_acknowledged}</div>
-      ${exifHTML}
 
       <div class="section-title">Dimension scores</div>
       <div class="dim-grid">${dimCards}</div>
@@ -1321,7 +1320,7 @@ function renderResult(r, exifParts) {
       </div>
 
       <div style="display: flex; gap: 12px; margin-top: 28px;">
-        <button class="btn-pdf" onclick="downloadCritiquePDF()">Download as PDF</button>
+        <button class="btn-pdf" onclick="downloadCritiquePDF()">Download as PDF →</button>
         <button class="btn-reset" onclick="resetForm()">Analyse another photo</button>
       </div>
     </div>`;
