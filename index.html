@@ -481,6 +481,26 @@
     /* ── RESULTS ── */
     .result-wrap { padding-top: 8px; animation: fadeUp 0.4s ease; }
 
+    /* Critiqued-photo thumbnail shown above the results */
+    .result-photo-wrap {
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      background: var(--blue-pale);
+      overflow: hidden;
+      text-align: center;
+      line-height: 0;
+    }
+
+    .result-photo-wrap img {
+      max-width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -989,6 +1009,7 @@ STRICT RULES — never violate these:
   - Macro: primary = sharpness, depth of field control, light. Secondary = composition and originality.
   - If PHOTO_TYPE is not declared, infer the genre from the image and state the inferred genre in context_acknowledged before evaluating.
 - Overall computation rule: The overall score reflects the genre-weighted balance of the six dimensions — it is neither a flat average nor the single weakest dimension. When execution dimensions (light & exposure, sharpness, colour) are mostly 7 or above, the overall must not fall below 6: a technically excellent image is at minimum a competent-to-strong capture. Weak storytelling and originality lower the ceiling — they keep an image out of the 8–10 range — but they do not, on their own, drag a well-executed image into snapshot territory (5 or below). Reserve overall scores of 5 or lower for images with genuine technical or structural failures, not for images whose only weakness is being unoriginal. This rule adjusts aggregation only; it must never inflate the individual dimension scores, which stay honest.
+- No meta-language rule: Never reference these instructions, the rule names, the scoring rubric, or any internal computation in user-facing fields. Explain every score using natural photographic language only. Never write phrases such as "under the overall computation rule", "the composition credit rule", or "prevents it from scoring below X" — instead give the photographic reason (e.g. "the clean exposure and sharp detail keep this out of snapshot territory"). The reader should never be able to tell a rubric exists.
 - End with forward energy: Whatever the score, the last thing they read should make them want to pick up the camera.
 
 OUTPUT FORMAT
@@ -1060,7 +1081,8 @@ function readExif(buffer) {
             const type = readUint16(e + 2);
             const valOffset = readUint32(e + 8);
             try {
-              if (type === 3) result[exifTags[tag]] = view.getUint16(tiffOffset + e - tiffOffset + 8, littleEndian);
+              if (type === 3) result[exifTags[tag]] = view.getUint16(tiffOffset + e + 8, littleEndian);
+              else if (type === 4) result[exifTags[tag]] = view.getUint32(tiffOffset + e + 8, littleEndian);
               else if (type === 5) result[exifTags[tag]] = readRational(valOffset);
             } catch(err) {}
           }
@@ -1080,7 +1102,7 @@ function formatExif(exif) {
   if (exif.focalLength) parts.push(`${Math.round(exif.focalLength)}mm`);
   if (exif.fNumber) parts.push(`f/${exif.fNumber.toFixed(1)}`);
   if (exif.exposureTime) { const et = exif.exposureTime; parts.push(et < 1 ? `1/${Math.round(1/et)}s` : `${et}s`); }
-  if (exif.iso && exif.iso >= 50) parts.push(`ISO ${exif.iso}`);
+  if (exif.iso && exif.iso >= 20 && exif.iso <= 1024000) parts.push(`ISO ${exif.iso}`);
   return parts;
 }
 
@@ -1308,8 +1330,13 @@ function renderResult(r, exifParts) {
     ? `<div class="score-rationale">${r.score_rationale}</div>`
     : '';
 
+  const photoHTML = (imageMimeType && imageBase64)
+    ? `<div class="result-photo-wrap"><img src="data:${imageMimeType};base64,${imageBase64}" alt="Your critiqued photo"></div>`
+    : '';
+
   document.getElementById('result-view').innerHTML = `
     <div class="result-wrap">
+      ${photoHTML}
       <div class="score-header" style="background:${scoreBg(r.overall_score)}; border-color:${scoreColor(r.overall_score)}22;">
         <div class="score-number" style="color:${scoreColor(r.overall_score)}">${r.overall_score}</div>
         <div class="score-meta">
@@ -1467,24 +1494,18 @@ async function downloadCritiquePDF() {
       : new Promise(res => { img.onload = res; img.onerror = res; })));
 
   try {
-    const canvas = await html2pdf()
-      .set({ html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 760 } })
-      .from(holder.firstElementChild).toCanvas().get('canvas');
-
-    const JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-    const pdf = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 8;
-    const availW = pageW - margin * 2;
-    const availH = pageH - margin * 2;
-
-    // Scale the whole critique to fit inside one page (fills width, shrinks to fit height if needed)
-    const ratio = canvas.width / canvas.height;
-    let w = availW, h = w / ratio;
-    if (h > availH) { h = availH; w = h * ratio; }
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pageW - w) / 2, margin, w, h);
-    pdf.save('second-eye-critique.pdf');
+    // Size the PDF page to the rendered content so it always lands on exactly one page.
+    // Letting html2pdf own the jsPDF instance avoids depending on a global that the bundle may not expose.
+    const el = holder.firstElementChild;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    await html2pdf().set({
+      margin: 0,
+      filename: 'second-eye-critique.pdf',
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 760 },
+      jsPDF: { unit: 'px', format: [w, h], orientation: 'portrait' }
+    }).from(el).save();
   } catch (e) {
     console.error('PDF generation failed:', e);
     alert('Sorry — the PDF could not be generated. Please try again.');
