@@ -171,7 +171,7 @@
 
     /* ── MAIN LAYOUT ── */
     main {
-      max-width: 900px;
+      max-width: 800px;
       margin: 0 auto;
       padding: 40px 20px 80px;
     }
@@ -237,10 +237,13 @@
       position: relative;
     }
 
-    .upload-zone:hover {
+    .upload-zone:hover,
+    .upload-zone.dragover {
       border-color: var(--blue-mid);
       background: var(--blue-light);
     }
+
+    .upload-zone.dragover { border-style: solid; }
 
     .upload-zone.has-image {
       padding: 0;
@@ -823,7 +826,7 @@
       <label class="field-label" for="file-input">Your photo</label>
       <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Upload photo" onclick="document.getElementById('file-input').click()" onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('file-input').click()">
         <div class="upload-icon">📷</div>
-        <div class="upload-primary">Upload a photo and get your free critique</div>
+        <div class="upload-primary">Drag &amp; drop a photo or browse</div>
         <div class="upload-hint">JPG · PNG · WEBP · HEIC — not RAW or DNG</div>
       </div>
       <div class="upload-error" id="upload-error" role="alert"></div>
@@ -977,6 +980,7 @@ STRICT RULES — never violate these:
 - Scoring honesty rule: Scores of 1–2 are expected and appropriate for images where no evident photographer decision is present. Do not use 3 as a psychological floor.
 - No decision no credit rule: If the only things working are the result of the camera's automatic systems, the score reflects the photographer's contribution, not the camera's.
 - Symmetry intent rule: When evaluating composition, distinguish between symmetry as a default and symmetry as intent. If the subject is inherently symmetrical and the framing respects that geometry cleanly, treat it as a valid compositional decision. Intentional symmetry well-executed scores 6–7 on composition — safe but not adventurous.
+- Composition credit rule: Score composition on execution, not originality. Clean, conventional framing — level horizon, deliberate subject placement, balanced elements, controlled foreground and background — is a competent compositional decision and scores 5–6 even when the vantage point is unoriginal or heavily photographed. Reserve 3–4 for composition that is genuinely broken: tilted horizons, amputated or accidentally cropped subjects, cluttered or unbalanced frames, or no discernible subject. The unoriginality of a well-known or iconic viewpoint is penalised once, in the originality dimension — never depress the composition score for it as well. A recognisable subject commanding attention is not evidence of absent composition; judge whether the frame is cleanly and deliberately built.
 - Compound one-thing-to-try rule: The 'one_thing_to_try' field must address the 2–3 weakest-scoring dimensions simultaneously in a single integrated exercise — not just the single lowest score.
 - Genre-weighting rule: Evaluation criteria must reweight based on PHOTO_TYPE:
   - Portrait (individual or group): primary = sharpness of subject, facial expression, emotional connection. Secondary = composition and light. Originality is the least important dimension.
@@ -984,6 +988,7 @@ STRICT RULES — never violate these:
   - Street: primary = storytelling, decisive moment, originality. Secondary = composition and light. Technical perfection is not expected.
   - Macro: primary = sharpness, depth of field control, light. Secondary = composition and originality.
   - If PHOTO_TYPE is not declared, infer the genre from the image and state the inferred genre in context_acknowledged before evaluating.
+- Overall computation rule: The overall score reflects the genre-weighted balance of the six dimensions — it is neither a flat average nor the single weakest dimension. When execution dimensions (light & exposure, sharpness, colour) are mostly 7 or above, the overall must not fall below 6: a technically excellent image is at minimum a competent-to-strong capture. Weak storytelling and originality lower the ceiling — they keep an image out of the 8–10 range — but they do not, on their own, drag a well-executed image into snapshot territory (5 or below). Reserve overall scores of 5 or lower for images with genuine technical or structural failures, not for images whose only weakness is being unoriginal. This rule adjusts aggregation only; it must never inflate the individual dimension scores, which stay honest.
 - End with forward energy: Whatever the score, the last thing they read should make them want to pick up the camera.
 
 OUTPUT FORMAT
@@ -1096,6 +1101,7 @@ const API_URL = '/.netlify/functions/analyze';
 const BLOCKED_EXT = ['raw','cr2','cr3','nef','arw','orf','rw2','dng','raf','pef','srw','x3f'];
 const MAX_PX = 1920;
 const MAX_BYTES = 4.5 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 function resizeImage(file) {
   return new Promise((resolve, reject) => {
@@ -1121,15 +1127,21 @@ function resizeImage(file) {
   });
 }
 
-document.getElementById('file-input').addEventListener('change', async function(e) {
-  const file = e.target.files[0];
+async function processFile(file) {
   if (!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
+  const fileInput = document.getElementById('file-input');
   const errorEl = document.getElementById('upload-error');
+  const ext = file.name.split('.').pop().toLowerCase();
   if (BLOCKED_EXT.includes(ext)) {
     errorEl.textContent = 'RAW and DNG files are not supported — please export as JPG, PNG, or WEBP first.';
     errorEl.style.display = 'block';
-    this.value = '';
+    fileInput.value = '';
+    return;
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    errorEl.textContent = `This photo is ${(file.size / 1024 / 1024).toFixed(1)} MB — please upload one under 10 MB.`;
+    errorEl.style.display = 'block';
+    fileInput.value = '';
     return;
   }
   errorEl.style.display = 'none';
@@ -1153,9 +1165,26 @@ document.getElementById('file-input').addEventListener('change', async function(
       ? 'This image is too large even after compression. Please resize it below 4 MB.'
       : 'Could not load this image. Please try a different file.';
     errorEl.style.display = 'block';
-    this.value = '';
+    fileInput.value = '';
   }
+}
+
+document.getElementById('file-input').addEventListener('change', function(e) {
+  processFile(e.target.files[0]);
 });
+
+// Drag & drop — routes through the same validation + processing path
+(function () {
+  const zone = document.getElementById('upload-zone');
+  ['dragenter', 'dragover'].forEach(ev =>
+    zone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); zone.classList.add('dragover'); }));
+  ['dragleave', 'dragend', 'drop'].forEach(ev =>
+    zone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); zone.classList.remove('dragover'); }));
+  zone.addEventListener('drop', e => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) processFile(f);
+  });
+})();
 
 function updateExifBadge() {
   const wrap = document.getElementById('exif-badge-wrap');
@@ -1331,12 +1360,17 @@ function dimBgColor(key) {
   return colors[key] || '#FFFFFF';
 }
 
-function downloadCritiquePDF() {
+// Concrete hex equivalents of the score colour vars — html2canvas resolves
+// these deterministically, whereas CSS var() can render inconsistently.
+function scoreColorHex(s) { return s >= 8 ? '#2D6A2D' : s >= 6 ? '#8A5A00' : '#8A1F1F'; }
+function scoreBgHex(s)    { return s >= 8 ? '#EDF5ED' : s >= 6 ? '#FFF8E6' : '#FDEEED'; }
+
+async function downloadCritiquePDF() {
   if (!currentCritique) return;
-  
+
   const { result: r, exifParts } = currentCritique;
-  
-  // Build dimension cards with colors
+  const ov = r.overall_score;
+
   const dims = [
     { key: 'composition', label: 'Composition & framing' },
     { key: 'light',       label: 'Light & exposure' },
@@ -1345,97 +1379,118 @@ function downloadCritiquePDF() {
     { key: 'storytelling',label: 'Storytelling & emotion' },
     { key: 'originality', label: 'Originality & creativity' }
   ];
-  
-  let dimHTML = dims.map(d => {
+
+  // Dimension cards — 2-column grid, pastel backgrounds, colour-coded score + bar (mirrors online)
+  const dimHTML = dims.map(d => {
     const s = r.dimensions[d.key];
-    return `<div style="background: ${dimBgColor(d.key)}; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; page-break-inside: avoid;">
-      <div style="font-size: 10px; color: #8892AA; font-weight: 500; margin-bottom: 4px;">${d.label}</div>
-      <div style="font-size: 20px; font-weight: bold; color: #1C3660;">${s}<span style="font-size: 12px; color: #8892AA;">/10</span></div>
+    const c = scoreColorHex(s);
+    return `<div style="width:calc(50% - 5px);box-sizing:border-box;background:${dimBgColor(d.key)};border-radius:8px;padding:9px 12px;">
+      <div style="font-size:10px;color:#8892AA;font-weight:500;margin-bottom:4px;">${d.label}</div>
+      <div style="margin-bottom:6px;"><span style="font-size:19px;font-weight:600;color:${c};">${s}</span><span style="font-size:11px;color:#8892AA;"> /10</span></div>
+      <div style="height:3px;background:#D6DDE8;border-radius:2px;"><div style="height:3px;width:${s*10}%;background:${c};border-radius:2px;"></div></div>
     </div>`;
   }).join('');
-  
-  let worksHTML = r.what_works.map(w => `<li style="margin-bottom: 4px; color: #4A5168; font-size: 12px;">${w}</li>`).join('');
-  let improveHTML = r.what_to_improve.map(w => `<li style="margin-bottom: 4px; color: #4A5168; font-size: 12px;">${w}</li>`).join('');
-  
-  let exifHTML = exifParts && exifParts.length > 0 
-    ? `<div style="font-size: 11px; color: #8892AA; margin-bottom: 12px; padding: 8px; background: #F4F7FC; border-radius: 4px;">${exifParts.join(' · ')}</div>`
+
+  const listItem = (text, dot) => `<li style="font-size:11.5px;color:#1A1E2E;line-height:1.45;padding:5px 0;border-bottom:1px solid #EBF0F8;display:flex;gap:8px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:${dot};flex-shrink:0;margin-top:5px;display:block;"></span><span>${text}</span></li>`;
+  const worksHTML   = r.what_works.map(w => listItem(w, '#2D6A2D')).join('');
+  const improveHTML = r.what_to_improve.map(w => listItem(w, '#8A5A00')).join('');
+
+  const exifHTML = exifParts && exifParts.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">${exifParts.map(p =>
+        `<span style="background:#F4F7FC;border:1px solid #D6DDE8;border-radius:20px;padding:3px 10px;font-size:10.5px;color:#4A5168;">${p}</span>`).join('')}</div>`
     : '';
-  
-  // Photo thumbnail with original aspect ratio
-  let photoHTML = '';
-  if (imageMimeType && imageBase64) {
-    photoHTML = `<div style="margin-bottom: 12px; text-align: right;">
-      <img src="data:${imageMimeType};base64,${imageBase64}" style="max-width: 100px; max-height: 100px; border-radius: 4px; object-fit: contain;">
-    </div>`;
-  }
-  
+
+  const photoHTML = (imageMimeType && imageBase64)
+    ? `<div style="width:120px;flex-shrink:0;"><img src="data:${imageMimeType};base64,${imageBase64}" style="width:120px;max-height:120px;object-fit:cover;border-radius:8px;display:block;"></div>`
+    : '';
+
+  const rationaleHTML = r.score_rationale
+    ? `<div style="font-size:11px;color:#4A5168;font-style:italic;line-height:1.45;margin-top:5px;">${r.score_rationale}</div>` : '';
+  const firstLookHTML = r.first_look
+    ? `<div style="font-size:11.5px;color:#4A5168;font-style:italic;line-height:1.5;border-left:3px solid #3D6199;background:#F4F7FC;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:10px;">&#128065; ${r.first_look}</div>` : '';
+  const contextHTML = r.context_acknowledged
+    ? `<div style="font-size:10.5px;color:#8892AA;font-style:italic;line-height:1.45;border:1px solid #D6DDE8;border-radius:8px;padding:8px 12px;margin-bottom:10px;">${r.context_acknowledged}</div>` : '';
+
+  const sectionTitle = t => `<div style="font-size:11px;font-weight:600;color:#1C3660;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 7px;">${t}</div>`;
+
   const pdfContent = `
-    <div style="font-family: 'Montserrat', 'Helvetica', sans-serif; padding: 20px; max-width: 100%; font-size: 12px;">
-      
-      <!-- Header -->
-      <div style="margin-bottom: 14px;">
-        <h1 style="font-size: 18px; color: #1C3660; margin: 0 0 4px 0; font-weight: 600;">Second Eye — Photo Critique</h1>
-        <p style="font-size: 10px; color: #8892AA; margin: 0; font-weight: 300;">AI-powered feedback to help you improve</p>
+    <div style="font-family:'Montserrat','Helvetica',sans-serif;width:760px;box-sizing:border-box;padding:26px;background:#ffffff;color:#1A1E2E;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #D6DDE8;padding-bottom:10px;margin-bottom:14px;">
+        <div>
+          <div style="font-size:19px;font-weight:600;color:#1C3660;letter-spacing:0.02em;">SECOND EYE</div>
+          <div style="font-size:11px;color:#8892AA;font-weight:300;">The feedback your photos deserve</div>
+        </div>
+        <div style="font-size:10px;color:#8892AA;">getsecondeye.com</div>
       </div>
-      
-      <!-- Photo Thumbnail -->
-      ${photoHTML}
-      
-      <!-- Overall Score Box -->
-      <div style="background: ${scoreBg(r.overall_score)}; padding: 12px 14px; border-radius: 6px; border-left: 4px solid ${scoreColor(r.overall_score)}; margin-bottom: 12px; page-break-inside: avoid;">
-        <div style="font-size: 28px; font-weight: bold; color: ${scoreColor(r.overall_score)}; margin-bottom: 4px;">${r.overall_score}/10</div>
-        <div style="font-size: 11px; font-weight: 500; color: ${scoreColor(r.overall_score)}; margin-bottom: 3px;">${r.score_label || ''}</div>
-        <p style="font-size: 11px; color: #4A5168; margin: 0 0 3px 0; line-height: 1.4;">${r.overall_summary}</p>
-        <p style="font-size: 10px; color: #4A5168; margin: 0; line-height: 1.3; font-style: italic;">${r.score_rationale}</p>
+
+      <div style="display:flex;gap:14px;margin-bottom:12px;">
+        <div style="flex:1;background:${scoreBgHex(ov)};border:1px solid ${scoreColorHex(ov)}33;border-radius:12px;padding:14px 16px;">
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <div style="font-size:38px;font-weight:600;line-height:1;color:${scoreColorHex(ov)};">${ov}</div>
+            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${scoreColorHex(ov)};">${r.score_label || ''}</div>
+          </div>
+          <div style="font-size:12.5px;color:#4A5168;line-height:1.5;margin-top:7px;">${r.overall_summary}</div>
+          ${rationaleHTML}
+        </div>
+        ${photoHTML}
       </div>
-      
-      <!-- Context Acknowledged -->
-      <p style="font-size: 10px; color: #8892AA; margin-bottom: 10px; font-style: italic; line-height: 1.4;">${r.context_acknowledged}</p>
-      
-      <!-- EXIF -->
+
+      ${firstLookHTML}
+      ${contextHTML}
       ${exifHTML}
-      
-      <!-- Dimension Scores -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 10px 0 8px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Dimension Scores</h2>
-      <div style="margin-bottom: 12px;">
-        ${dimHTML}
-      </div>
-      
-      <!-- What Works -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">What Works</h2>
-      <ul style="padding-left: 16px; margin: 0 0 10px 0;">
-        ${worksHTML}
-      </ul>
-      
-      <!-- What to Improve -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">What to Improve</h2>
-      <ul style="padding-left: 16px; margin: 0 0 10px 0;">
-        ${improveHTML}
-      </ul>
-      
-      <!-- One Thing to Try -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">One Thing to Try</h2>
-      <div style="background: #EBF0F8; padding: 10px 12px; border-radius: 4px; border-left: 3px solid #2B4F8A; color: #4A5168; font-size: 11px; line-height: 1.5; page-break-inside: avoid;">
-        ${r.one_thing_to_try}
-      </div>
-      
-      <!-- Footer -->
-      <p style="text-align: center; color: #C2CCDB; font-size: 9px; margin-top: 12px; margin-bottom: 0;">© Second Eye · getsecondeye.com · AI critique for photographers</p>
-    </div>
-  `;
-  
-  const element = document.createElement('div');
-  element.innerHTML = pdfContent;
-  
-  const opt = {
-    margin: [12, 12, 12, 12],
-    filename: 'second-eye-critique.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  
-  html2pdf().set(opt).from(element).save();
+
+      ${sectionTitle('Dimension scores')}
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">${dimHTML}</div>
+
+      ${sectionTitle('What works')}
+      <ul style="list-style:none;padding:0;margin:0 0 12px;">${worksHTML}</ul>
+
+      ${sectionTitle('What to improve')}
+      <ul style="list-style:none;padding:0;margin:0 0 12px;">${improveHTML}</ul>
+
+      ${sectionTitle('One thing to try')}
+      <div style="background:#F4F7FC;border-left:3px solid #2B4F8A;border-radius:0 8px 8px 0;padding:12px 14px;font-size:12px;line-height:1.6;color:#1A1E2E;">${r.one_thing_to_try}</div>
+
+      <div style="text-align:center;color:#C2CCDB;font-size:9px;margin-top:14px;">© Second Eye · getsecondeye.com · AI critique for photographers</div>
+    </div>`;
+
+  // Render off-screen but attached to the DOM (a detached node renders blank in html2canvas)
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed;left:-10000px;top:0;width:760px;background:#ffffff;';
+  holder.innerHTML = pdfContent;
+  document.body.appendChild(holder);
+
+  // Wait for the embedded photo to finish decoding before capture
+  await Promise.all([...holder.querySelectorAll('img')].map(img =>
+    (img.complete && img.naturalWidth) ? Promise.resolve()
+      : new Promise(res => { img.onload = res; img.onerror = res; })));
+
+  try {
+    const canvas = await html2pdf()
+      .set({ html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 760 } })
+      .from(holder.firstElementChild).toCanvas().get('canvas');
+
+    const JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    const pdf = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const availW = pageW - margin * 2;
+    const availH = pageH - margin * 2;
+
+    // Scale the whole critique to fit inside one page (fills width, shrinks to fit height if needed)
+    const ratio = canvas.width / canvas.height;
+    let w = availW, h = w / ratio;
+    if (h > availH) { h = availH; w = h * ratio; }
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pageW - w) / 2, margin, w, h);
+    pdf.save('second-eye-critique.pdf');
+  } catch (e) {
+    console.error('PDF generation failed:', e);
+    alert('Sorry — the PDF could not be generated. Please try again.');
+  } finally {
+    holder.remove();
+  }
 }
 
 function resetForm() {
@@ -1451,7 +1506,7 @@ function resetForm() {
   document.getElementById('exif-badge-wrap').innerHTML = '';
   const zone = document.getElementById('upload-zone');
   zone.classList.remove('has-image');
-  zone.innerHTML = `<div class="upload-icon">📷</div><div class="upload-primary">Upload a photo to analyse</div><div class="upload-hint">JPG · PNG · WEBP · HEIC — not RAW or DNG</div>`;
+  zone.innerHTML = `<div class="upload-icon">📷</div><div class="upload-primary">Drag &amp; drop a photo or browse</div><div class="upload-hint">JPG · PNG · WEBP · HEIC — not RAW or DNG</div>`;
   document.getElementById('submit-btn').disabled = true;
   document.getElementById('form-view').style.display = 'block';
   document.getElementById('result-view').style.display = 'none';
