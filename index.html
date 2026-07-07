@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://getsecondeye.com/">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="author" content="Second Eye">
-  <meta name="theme-color" content="#2B4F8A">
+  <meta name="theme-color" content="#2F5AA8">
   <meta name="format-detection" content="telephone=no">
 
   <!-- Open Graph (social sharing) -->
@@ -98,23 +98,23 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --blue:       #2B4F8A;
-      --blue-dark:  #1C3660;
-      --blue-mid:   #3D6199;
-      --blue-light: #EBF0F8;
-      --blue-pale:  #F4F7FC;
-      --ink:        #1A1E2E;
-      --ink-mid:    #4A5168;
-      --ink-light:  #8892AA;
-      --border:     #D6DDE8;
-      --border-mid: #C2CCDB;
+      --blue:       #2F5AA8;
+      --blue-dark:  #16345F;
+      --blue-mid:   #5D86D8;
+      --blue-light: #DCE8FA;
+      --blue-pale:  #F8FAFC;
+      --ink:        #20252D;
+      --ink-mid:    #55606F;
+      --ink-light:  #A9B3C1;
+      --border:     #EDF1F5;
+      --border-mid: #A9B3C1;
       --white:      #FFFFFF;
-      --green:      #2D6A2D;
-      --green-bg:   #EDF5ED;
-      --amber:      #8A5A00;
-      --amber-bg:   #FFF8E6;
-      --red:        #8A1F1F;
-      --red-bg:     #FDEEED;
+      --green:      #17B890;
+      --green-bg:   rgba(23, 184, 144, 0.08);
+      --amber:      #E8A317;
+      --amber-bg:   rgba(232, 163, 23, 0.08);
+      --red:        #D64545;
+      --red-bg:     rgba(214, 69, 69, 0.08);
       --radius-sm:  6px;
       --radius-md:  10px;
       --radius-lg:  16px;
@@ -806,7 +806,7 @@
 
 <header>
   <a class="logo-wrap" href="/">
-    <img src="img/secondeye-tagline4.png" alt="Second Eye" class="logo-img">
+    <img src="img/secondeye.png" alt="Second Eye" class="logo-img">
   </a><div class="header-tagline">The feedback your photos deserve</div>
 </header>
 
@@ -1349,16 +1349,16 @@ function downloadCritiquePDF() {
   let dimHTML = dims.map(d => {
     const s = r.dimensions[d.key];
     return `<div style="background: ${dimBgColor(d.key)}; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; page-break-inside: avoid;">
-      <div style="font-size: 10px; color: #8892AA; font-weight: 500; margin-bottom: 4px;">${d.label}</div>
-      <div style="font-size: 20px; font-weight: bold; color: #1C3660;">${s}<span style="font-size: 12px; color: #8892AA;">/10</span></div>
+      <div style="font-size: 10px; color: #A9B3C1; font-weight: 500; margin-bottom: 4px;">${d.label}</div>
+      <div style="font-size: 20px; font-weight: bold; color: #16345F;">${s}<span style="font-size: 12px; color: #A9B3C1;">/10</span></div>
     </div>`;
   }).join('');
   
-  let worksHTML = r.what_works.map(w => `<li style="margin-bottom: 4px; color: #4A5168; font-size: 12px;">${w}</li>`).join('');
-  let improveHTML = r.what_to_improve.map(w => `<li style="margin-bottom: 4px; color: #4A5168; font-size: 12px;">${w}</li>`).join('');
+  let worksHTML = r.what_works.map(w => `<li style="margin-bottom: 4px; color: #55606F; font-size: 12px;">${w}</li>`).join('');
+  let improveHTML = r.what_to_improve.map(w => `<li style="margin-bottom: 4px; color: #55606F; font-size: 12px;">${w}</li>`).join('');
   
   let exifHTML = exifParts && exifParts.length > 0 
-    ? `<div style="font-size: 11px; color: #8892AA; margin-bottom: 12px; padding: 8px; background: #F4F7FC; border-radius: 4px;">${exifParts.join(' · ')}</div>`
+    ? `<div style="font-size: 11px; color: #A9B3C1; margin-bottom: 12px; padding: 8px; background: #F8FAFC; border-radius: 4px;">${exifParts.join(' · ')}</div>`
     : '';
   
   // Photo thumbnail with original aspect ratio
@@ -1374,8 +1374,8 @@ function downloadCritiquePDF() {
       
       <!-- Header -->
       <div style="margin-bottom: 14px;">
-        <h1 style="font-size: 18px; color: #1C3660; margin: 0 0 4px 0; font-weight: 600;">Second Eye — Photo Critique</h1>
-        <p style="font-size: 10px; color: #8892AA; margin: 0; font-weight: 300;">AI-powered feedback to help you improve</p>
+        <h1 style="font-size: 18px; color: #16345F; margin: 0 0 4px 0; font-weight: 600;">Second Eye — Photo Critique</h1>
+        <p style="font-size: 10px; color: #A9B3C1; margin: 0; font-weight: 300;">AI-powered feedback to help you improve</p>
       </div>
       
       <!-- Photo Thumbnail -->
@@ -1385,42 +1385,42 @@ function downloadCritiquePDF() {
       <div style="background: ${scoreBg(r.overall_score)}; padding: 12px 14px; border-radius: 6px; border-left: 4px solid ${scoreColor(r.overall_score)}; margin-bottom: 12px; page-break-inside: avoid;">
         <div style="font-size: 28px; font-weight: bold; color: ${scoreColor(r.overall_score)}; margin-bottom: 4px;">${r.overall_score}/10</div>
         <div style="font-size: 11px; font-weight: 500; color: ${scoreColor(r.overall_score)}; margin-bottom: 3px;">${r.score_label || ''}</div>
-        <p style="font-size: 11px; color: #4A5168; margin: 0 0 3px 0; line-height: 1.4;">${r.overall_summary}</p>
-        <p style="font-size: 10px; color: #4A5168; margin: 0; line-height: 1.3; font-style: italic;">${r.score_rationale}</p>
+        <p style="font-size: 11px; color: #55606F; margin: 0 0 3px 0; line-height: 1.4;">${r.overall_summary}</p>
+        <p style="font-size: 10px; color: #55606F; margin: 0; line-height: 1.3; font-style: italic;">${r.score_rationale}</p>
       </div>
       
       <!-- Context Acknowledged -->
-      <p style="font-size: 10px; color: #8892AA; margin-bottom: 10px; font-style: italic; line-height: 1.4;">${r.context_acknowledged}</p>
+      <p style="font-size: 10px; color: #A9B3C1; margin-bottom: 10px; font-style: italic; line-height: 1.4;">${r.context_acknowledged}</p>
       
       <!-- EXIF -->
       ${exifHTML}
       
       <!-- Dimension Scores -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 10px 0 8px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Dimension Scores</h2>
+      <h2 style="font-size: 11px; color: #16345F; margin: 10px 0 8px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Dimension Scores</h2>
       <div style="margin-bottom: 12px;">
         ${dimHTML}
       </div>
       
       <!-- What Works -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">What Works</h2>
+      <h2 style="font-size: 11px; color: #16345F; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">What Works</h2>
       <ul style="padding-left: 16px; margin: 0 0 10px 0;">
         ${worksHTML}
       </ul>
       
       <!-- What to Improve -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">What to Improve</h2>
+      <h2 style="font-size: 11px; color: #16345F; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">What to Improve</h2>
       <ul style="padding-left: 16px; margin: 0 0 10px 0;">
         ${improveHTML}
       </ul>
       
       <!-- One Thing to Try -->
-      <h2 style="font-size: 11px; color: #1C3660; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">One Thing to Try</h2>
-      <div style="background: #EBF0F8; padding: 10px 12px; border-radius: 4px; border-left: 3px solid #2B4F8A; color: #4A5168; font-size: 11px; line-height: 1.5; page-break-inside: avoid;">
+      <h2 style="font-size: 11px; color: #16345F; margin: 8px 0 6px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">One Thing to Try</h2>
+      <div style="background: #DCE8FA; padding: 10px 12px; border-radius: 4px; border-left: 3px solid #2F5AA8; color: #55606F; font-size: 11px; line-height: 1.5; page-break-inside: avoid;">
         ${r.one_thing_to_try}
       </div>
       
       <!-- Footer -->
-      <p style="text-align: center; color: #C2CCDB; font-size: 9px; margin-top: 12px; margin-bottom: 0;">© Second Eye · getsecondeye.com · AI critique for photographers</p>
+      <p style="text-align: center; color: #A9B3C1; font-size: 9px; margin-top: 12px; margin-bottom: 0;">© Second Eye · getsecondeye.com · AI critique for photographers</p>
     </div>
   `;
   
