@@ -1254,7 +1254,7 @@ function renderResult(r, exifParts) {
 
   const dimCards = dims.map(d => {
     const s = r.dimensions[d.key];
-    return `<div class="dim-card">
+    return `<div class="dim-card" style="background:${dimBgColor(d.key)}">
       <div class="dim-name">${d.label}</div>
       <div class="dim-score-row">
         <div class="dim-score-num" style="color:${scoreColor(s)}">${s}</div>
