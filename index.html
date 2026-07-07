@@ -822,8 +822,40 @@
       .dimensions-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
       .score-number { font-size: 40px; }
     }
+
+    /* ── PRINT / SAVE-AS-PDF ── native engine, critique only, colours preserved ── */
+    @media print {
+      @page { size: A4 portrait; margin: 12mm; }
+
+      /* Force background colours to print (browsers strip them by default) */
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+      /* Hide everything that isn't the critique */
+      header, footer, #form-view, .seo-content, .result-actions { display: none !important; }
+
+      body { background: #fff; }
+      main { max-width: 100%; margin: 0; padding: 0; }
+      #result-view { display: block !important; }
+      .result-wrap { padding-top: 0; animation: none; }
+
+      /* Keep the whole report tidy and unbroken across the page */
+      .result-photo-wrap img { max-height: 240px; }
+      .score-header, .dim-card, .try-card, .first-look,
+      .feedback-section, .result-photo-wrap { break-inside: avoid; page-break-inside: avoid; }
+
+      /* A discreet header on the printed sheet */
+      .result-wrap::before {
+        content: "Second Eye · The feedback your photos deserve · getsecondeye.com";
+        display: block;
+        font-size: 10px;
+        color: #8892AA;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #D6DDE8;
+      }
+    }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- PDF export now uses the browser's native print engine — no library needed -->
 </head>
 <body>
 
@@ -1368,8 +1400,8 @@ function renderResult(r, exifParts) {
         <div class="try-card"><p>${r.one_thing_to_try}</p></div>
       </div>
 
-      <div style="display: flex; gap: 12px; margin-top: 28px;">
-        <button class="btn-pdf" onclick="downloadCritiquePDF()">⬇ Download as PDF</button>
+      <div class="result-actions" style="display: flex; gap: 12px; margin-top: 28px;">
+        <button class="btn-pdf" onclick="printCritique()">⬇ Save as PDF</button>
         <button class="btn-reset" onclick="resetForm()">Analyse another photo</button>
       </div>
     </div>`;
@@ -1387,131 +1419,11 @@ function dimBgColor(key) {
   return colors[key] || '#FFFFFF';
 }
 
-// Concrete hex equivalents of the score colour vars — html2canvas resolves
-// these deterministically, whereas CSS var() can render inconsistently.
-function scoreColorHex(s) { return s >= 8 ? '#2D6A2D' : s >= 6 ? '#8A5A00' : '#8A1F1F'; }
-function scoreBgHex(s)    { return s >= 8 ? '#EDF5ED' : s >= 6 ? '#FFF8E6' : '#FDEEED'; }
-
-async function downloadCritiquePDF() {
+// Print the critique using the browser's own print engine (reliable, vector text).
+// The @media print stylesheet hides everything except the results and preserves colours.
+function printCritique() {
   if (!currentCritique) return;
-
-  const { result: r, exifParts } = currentCritique;
-  const ov = r.overall_score;
-
-  const dims = [
-    { key: 'composition', label: 'Composition & framing' },
-    { key: 'light',       label: 'Light & exposure' },
-    { key: 'sharpness',   label: 'Sharpness & technique' },
-    { key: 'color',       label: 'Colour & processing' },
-    { key: 'storytelling',label: 'Storytelling & emotion' },
-    { key: 'originality', label: 'Originality & creativity' }
-  ];
-
-  // Dimension cards — 2-column grid, pastel backgrounds, colour-coded score + bar (mirrors online)
-  const dimHTML = dims.map(d => {
-    const s = r.dimensions[d.key];
-    const c = scoreColorHex(s);
-    return `<div style="width:calc(50% - 5px);box-sizing:border-box;background:${dimBgColor(d.key)};border-radius:8px;padding:9px 12px;">
-      <div style="font-size:10px;color:#8892AA;font-weight:500;margin-bottom:4px;">${d.label}</div>
-      <div style="margin-bottom:6px;"><span style="font-size:19px;font-weight:600;color:${c};">${s}</span><span style="font-size:11px;color:#8892AA;"> /10</span></div>
-      <div style="height:3px;background:#D6DDE8;border-radius:2px;"><div style="height:3px;width:${s*10}%;background:${c};border-radius:2px;"></div></div>
-    </div>`;
-  }).join('');
-
-  const listItem = (text, dot) => `<li style="font-size:11.5px;color:#1A1E2E;line-height:1.45;padding:5px 0;border-bottom:1px solid #EBF0F8;display:flex;gap:8px;">
-      <span style="width:6px;height:6px;border-radius:50%;background:${dot};flex-shrink:0;margin-top:5px;display:block;"></span><span>${text}</span></li>`;
-  const worksHTML   = r.what_works.map(w => listItem(w, '#2D6A2D')).join('');
-  const improveHTML = r.what_to_improve.map(w => listItem(w, '#8A5A00')).join('');
-
-  const exifHTML = exifParts && exifParts.length
-    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">${exifParts.map(p =>
-        `<span style="background:#F4F7FC;border:1px solid #D6DDE8;border-radius:20px;padding:3px 10px;font-size:10.5px;color:#4A5168;">${p}</span>`).join('')}</div>`
-    : '';
-
-  const photoHTML = (imageMimeType && imageBase64)
-    ? `<div style="width:120px;flex-shrink:0;"><img src="data:${imageMimeType};base64,${imageBase64}" style="width:120px;max-height:120px;object-fit:cover;border-radius:8px;display:block;"></div>`
-    : '';
-
-  const rationaleHTML = r.score_rationale
-    ? `<div style="font-size:11px;color:#4A5168;font-style:italic;line-height:1.45;margin-top:5px;">${r.score_rationale}</div>` : '';
-  const firstLookHTML = r.first_look
-    ? `<div style="font-size:11.5px;color:#4A5168;font-style:italic;line-height:1.5;border-left:3px solid #3D6199;background:#F4F7FC;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:10px;">&#128065; ${r.first_look}</div>` : '';
-  const contextHTML = r.context_acknowledged
-    ? `<div style="font-size:10.5px;color:#8892AA;font-style:italic;line-height:1.45;border:1px solid #D6DDE8;border-radius:8px;padding:8px 12px;margin-bottom:10px;">${r.context_acknowledged}</div>` : '';
-
-  const sectionTitle = t => `<div style="font-size:11px;font-weight:600;color:#1C3660;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 7px;">${t}</div>`;
-
-  const pdfContent = `
-    <div style="font-family:'Montserrat','Helvetica',sans-serif;width:760px;box-sizing:border-box;padding:26px;background:#ffffff;color:#1A1E2E;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #D6DDE8;padding-bottom:10px;margin-bottom:14px;">
-        <div>
-          <div style="font-size:19px;font-weight:600;color:#1C3660;letter-spacing:0.02em;">SECOND EYE</div>
-          <div style="font-size:11px;color:#8892AA;font-weight:300;">The feedback your photos deserve</div>
-        </div>
-        <div style="font-size:10px;color:#8892AA;">getsecondeye.com</div>
-      </div>
-
-      <div style="display:flex;gap:14px;margin-bottom:12px;">
-        <div style="flex:1;background:${scoreBgHex(ov)};border:1px solid ${scoreColorHex(ov)}33;border-radius:12px;padding:14px 16px;">
-          <div style="display:flex;align-items:baseline;gap:10px;">
-            <div style="font-size:38px;font-weight:600;line-height:1;color:${scoreColorHex(ov)};">${ov}</div>
-            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:${scoreColorHex(ov)};">${r.score_label || ''}</div>
-          </div>
-          <div style="font-size:12.5px;color:#4A5168;line-height:1.5;margin-top:7px;">${r.overall_summary}</div>
-          ${rationaleHTML}
-        </div>
-        ${photoHTML}
-      </div>
-
-      ${firstLookHTML}
-      ${contextHTML}
-      ${exifHTML}
-
-      ${sectionTitle('Dimension scores')}
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">${dimHTML}</div>
-
-      ${sectionTitle('What works')}
-      <ul style="list-style:none;padding:0;margin:0 0 12px;">${worksHTML}</ul>
-
-      ${sectionTitle('What to improve')}
-      <ul style="list-style:none;padding:0;margin:0 0 12px;">${improveHTML}</ul>
-
-      ${sectionTitle('One thing to try')}
-      <div style="background:#F4F7FC;border-left:3px solid #2B4F8A;border-radius:0 8px 8px 0;padding:12px 14px;font-size:12px;line-height:1.6;color:#1A1E2E;">${r.one_thing_to_try}</div>
-
-      <div style="text-align:center;color:#C2CCDB;font-size:9px;margin-top:14px;">© Second Eye · getsecondeye.com · AI critique for photographers</div>
-    </div>`;
-
-  // Render off-screen but attached to the DOM (a detached node renders blank in html2canvas)
-  const holder = document.createElement('div');
-  holder.style.cssText = 'position:fixed;left:-10000px;top:0;width:760px;background:#ffffff;';
-  holder.innerHTML = pdfContent;
-  document.body.appendChild(holder);
-
-  // Wait for the embedded photo to finish decoding before capture
-  await Promise.all([...holder.querySelectorAll('img')].map(img =>
-    (img.complete && img.naturalWidth) ? Promise.resolve()
-      : new Promise(res => { img.onload = res; img.onerror = res; })));
-
-  try {
-    // Size the PDF page to the rendered content so it always lands on exactly one page.
-    // Letting html2pdf own the jsPDF instance avoids depending on a global that the bundle may not expose.
-    const el = holder.firstElementChild;
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    await html2pdf().set({
-      margin: 0,
-      filename: 'second-eye-critique.pdf',
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 760 },
-      jsPDF: { unit: 'px', format: [w, h], orientation: 'portrait' }
-    }).from(el).save();
-  } catch (e) {
-    console.error('PDF generation failed:', e);
-    alert('Sorry — the PDF could not be generated. Please try again.');
-  } finally {
-    holder.remove();
-  }
+  window.print();
 }
 
 function resetForm() {
