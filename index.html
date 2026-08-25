@@ -862,7 +862,8 @@
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
       /* Hide everything that isn't the critique */
-      header, footer, #form-view, .seo-content, .result-actions { display: none !important; }
+      header, footer, #form-view, .seo-content, .result-actions,
+      #email-gate, form[name="critique-signup"] { display: none !important; }
 
       body { background: #fff; }
       main { max-width: 100%; margin: 0; padding: 0; }
@@ -885,10 +886,33 @@
         border-bottom: 1px solid #D6DDE8;
       }
     }
+
+    /* ── EMAIL GATE MODAL ── */
+    .eg-overlay { position: fixed; inset: 0; background: rgba(26,30,46,0.55); align-items: center; justify-content: center; padding: 20px; z-index: 1000; display: none; }
+    .eg-overlay:not([hidden]) { display: flex; }
+    .eg-card { background: var(--white); border-radius: var(--radius-lg); padding: 28px 26px; max-width: 380px; width: 100%; position: relative; font-family: 'Montserrat', sans-serif; box-shadow: 0 20px 50px rgba(26,30,46,0.25); }
+    .eg-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 22px; color: var(--ink-light); cursor: pointer; line-height: 1; }
+    .eg-title { font-size: 18px; color: var(--ink); margin: 0 0 8px; font-weight: 700; }
+    .eg-sub { font-size: 13px; color: var(--ink-mid); margin: 0 0 18px; line-height: 1.5; }
+    .eg-input { width: 100%; box-sizing: border-box; padding: 11px 13px; margin-bottom: 10px; border: 1px solid var(--border-mid); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; color: var(--ink); }
+    .eg-input:focus { outline: none; border-color: var(--blue); }
+    .eg-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-mid); margin-bottom: 14px; line-height: 1.45; cursor: pointer; }
+    .eg-consent input { margin-top: 2px; flex-shrink: 0; }
+    .eg-consent a { color: var(--blue-mid); }
+    .eg-error { color: var(--red); font-size: 12px; margin-bottom: 10px; }
+    .eg-btn { width: 100%; background: var(--blue); color: var(--white); border: none; border-radius: var(--radius-md); padding: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+    .eg-btn:hover { background: var(--blue-dark); }
   </style>
   <!-- PDF export now uses the browser's native print engine — no library needed -->
 </head>
 <body>
+
+<!-- Hidden form so Netlify's build-time crawler registers it for JS submissions -->
+<form name="critique-signup" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="text" name="name" />
+  <input type="email" name="email" />
+  <input type="checkbox" name="consent" />
+</form>
 
 <header>
   <a class="logo-wrap" href="/">
@@ -1016,6 +1040,7 @@
 
 <footer>
   <p>Second Eye &nbsp;·&nbsp; AI photo critique &amp; scoring &nbsp;·&nbsp; <a href="https://getsecondeye.com">getsecondeye.com</a></p>
+  <p style="margin-top: 8px;"><a href="/privacy.html">Privacy Policy</a></p>
 </footer>
 
 <script>
@@ -1338,6 +1363,11 @@ const userContent = [
     const clean = text.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
     renderResult(result, formatExif(detectedExif));
+    try {
+      const n = parseInt(localStorage.getItem(EG_COUNT_KEY) || '0', 10) + 1;
+      localStorage.setItem(EG_COUNT_KEY, n);
+      track('critique_completed', { count: n });
+    } catch(e){}
   } catch(err) {
     console.error('Analyze failed:', err);
     resultView.innerHTML = `
@@ -1438,7 +1468,7 @@ function renderResult(r, exifParts) {
       </div>
 
       <div class="result-actions" style="display: flex; gap: 12px; margin-top: 28px;">
-        <button class="btn-pdf" onclick="printCritique()">⬇ Save as PDF</button>
+        <button class="btn-pdf" onclick="requestPdf()">⬇ Save as PDF</button>
         <button class="btn-reset" onclick="resetForm()">Analyse another photo</button>
       </div>
     </div>`;
@@ -1481,7 +1511,63 @@ function resetForm() {
   document.getElementById('form-view').style.display = 'block';
   document.getElementById('result-view').style.display = 'none';
 }
+
+/* ── EMAIL GATE + ANALYTICS ── */
+const EG_KEY = 'se_lead';
+const EG_COUNT_KEY = 'se_critiques';
+
+// Points at PostHog if you've installed it; harmless no-op if not.
+function track(event, props) {
+  try { if (window.posthog) window.posthog.capture(event, props || {}); } catch(e){}
+}
+function hasLead() { try { return !!localStorage.getItem(EG_KEY); } catch(e){ return false; } }
+
+// Replaces the direct print call on the button.
+function requestPdf() {
+  if (!currentCritique) return;
+  track('pdf_click');
+  if (hasLead()) { window.print(); return; }
+  document.getElementById('email-gate').hidden = false;
+  track('email_gate_shown');
+}
+function closeEmailGate() { document.getElementById('email-gate').hidden = true; }
+
+async function submitEmailGate() {
+  const name = document.getElementById('eg-name').value.trim();
+  const email = document.getElementById('eg-email').value.trim();
+  const consent = document.getElementById('eg-consent').checked;
+  const err = document.getElementById('eg-error');
+  err.hidden = true;
+  if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    err.textContent = 'Please enter your name and a valid email.'; err.hidden = false; return;
+  }
+  if (!consent) {
+    err.textContent = 'Please tick the consent box to continue.'; err.hidden = false; return;
+  }
+  const body = new URLSearchParams({ 'form-name': 'critique-signup', name, email, consent: 'yes' }).toString();
+  try {
+    await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+  } catch(e) { /* don't lose the user over a network blip */ }
+  try { localStorage.setItem(EG_KEY, email); } catch(e){}
+  track('email_captured');
+  closeEmailGate();
+  window.print();
+}
 </script>
+
+<!-- ── EMAIL GATE MODAL ── -->
+<div id="email-gate" class="eg-overlay" hidden>
+  <div class="eg-card">
+    <button class="eg-close" onclick="closeEmailGate()" aria-label="Close">×</button>
+    <h3 class="eg-title">Save your critique as a PDF</h3>
+    <p class="eg-sub">Enter your details and we'll unlock the export. We'll only send occasional photography tips — unsubscribe anytime.</p>
+    <input id="eg-name" class="eg-input" type="text" placeholder="First name" autocomplete="given-name" />
+    <input id="eg-email" class="eg-input" type="email" placeholder="you@email.com" autocomplete="email" />
+    <label class="eg-consent"><input id="eg-consent" type="checkbox" /><span>I agree to receive occasional emails from Second Eye. See our <a href="/privacy.html" target="_blank">privacy policy</a>.</span></label>
+    <div id="eg-error" class="eg-error" hidden></div>
+    <button class="eg-btn" onclick="submitEmailGate()">Unlock my PDF</button>
+  </div>
+</div>
 
 </body>
 </html>
