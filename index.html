@@ -784,14 +784,67 @@
     /* ── FOOTER ── */
     footer {
       border-top: 1px solid var(--border);
-      padding: 20px 24px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--ink-light);
+      background: var(--blue-light);
+      color: var(--ink-mid);
       font-weight: 300;
     }
 
-    footer a { color: var(--blue-mid); text-decoration: none; }
+    .footer-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 24px 28px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 24px 40px;
+    }
+
+    .footer-brand { min-width: 0; }
+
+    .footer-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--blue-dark);
+      letter-spacing: 0.01em;
+    }
+
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--ink-light);
+      margin-top: 4px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    footer a {
+      color: var(--blue-mid);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    footer a:hover { color: var(--blue-dark); text-decoration: underline; }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border-mid);
+      text-align: center;
+      font-size: 11px;
+      color: var(--ink-light);
+      padding: 14px 24px;
+    }
+
+    /* Mobile: stack the columns and centre everything */
+    @media (max-width: 560px) {
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 22px;
+      }
+      .footer-links { align-items: center; }
+    }
 
     /* ── SEO / GEO CONTENT ── */
     .seo-content {
@@ -1039,8 +1092,19 @@
 </main>
 
 <footer>
-  <p>Second Eye &nbsp;·&nbsp; AI photo critique &amp; scoring &nbsp;·&nbsp; <a href="https://getsecondeye.com">getsecondeye.com</a></p>
-  <p style="margin-top: 8px;"><a href="/privacy.html">Privacy Policy</a></p>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-name">Second Eye</div>
+      <div class="footer-tagline">AI photo critique &amp; scoring</div>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="mailto:hello@getsecondeye.com">Contact</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    © 2026 Second Eye &nbsp;·&nbsp; <a href="https://getsecondeye.com">getsecondeye.com</a>
+  </div>
 </footer>
 
 <script>
