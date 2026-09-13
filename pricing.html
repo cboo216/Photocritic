@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2B4F8A">
+<title>Pricing — Second Eye</title>
+<meta name="description" content="Simple pricing for honest AI photo critique. Start free with three critiques a month, go Pro for more, or buy a one-off pack. No lock-in.">
+<link rel="canonical" href="https://getsecondeye.com/pricing.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:       #2B4F8A;
+    --blue-dark:  #1C3660;
+    --blue-mid:   #3D6199;
+    --blue-light: #EBF0F8;
+    --blue-pale:  #F4F7FC;
+    --ink:        #1A1E2E;
+    --ink-mid:    #4A5168;
+    --ink-light:  #8892AA;
+    --border:     #D6DDE8;
+    --border-mid: #C2CCDB;
+    --white:      #FFFFFF;
+    --radius-sm:  6px;
+    --radius-md:  10px;
+    --radius-lg:  16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--ink);
+    background: var(--blue-pale);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── Header (harmonised with index) ── */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    height: 70px; padding: 0 15px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-img { height: 40px; width: auto; flex-shrink: 0; }
+
+  .header-nav { display: flex; align-items: center; gap: 26px; }
+  .header-link {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px; font-weight: 500; color: var(--ink-mid);
+    text-decoration: none; white-space: nowrap; transition: color 0.15s;
+  }
+  .header-link:hover {
+    color: var(--blue-dark); text-decoration: underline;
+    text-underline-offset: 4px; text-decoration-thickness: 1.5px;
+  }
+  .header-link.active { color: var(--blue-dark); font-weight: 600; }
+
+  .burger {
+    display: none; flex-direction: column; justify-content: center; gap: 5px;
+    width: 42px; height: 42px; padding: 9px;
+    background: none; border: none; cursor: pointer; flex-shrink: 0;
+  }
+  .burger span {
+    display: block; width: 100%; height: 2px;
+    background: var(--ink-mid); border-radius: 2px;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu {
+    position: absolute; top: 70px; right: 12px;
+    display: none; flex-direction: column;
+    min-width: 190px; padding: 8px;
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 30px -10px rgba(28,54,96,0.22);
+    z-index: 30;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu .header-link { padding: 12px 14px; border-radius: var(--radius-sm); font-size: 15px; }
+  .mobile-menu .header-link:hover { background: var(--blue-light); text-decoration: none; color: var(--blue-dark); }
+
+  @media (max-width: 560px) {
+    .header-nav { display: none; }
+    .burger { display: flex; }
+  }
+
+  /* ── Hero ── */
+  .hero { max-width: 760px; margin: 0 auto; padding: 64px 24px 8px; text-align: center; }
+  .hero h1 {
+    font-size: clamp(30px, 5vw, 44px); line-height: 1.12; font-weight: 400;
+    color: var(--blue-dark); letter-spacing: -0.02em; margin-bottom: 18px;
+  }
+  .hero p.sub { font-size: 16px; color: var(--ink-mid); max-width: 56ch; margin: 0 auto; }
+
+  /* ── Billing toggle ── */
+  .toggle-wrap { display: flex; justify-content: center; align-items: center; gap: 12px; margin: 34px 0 8px; }
+  .seg {
+    display: inline-flex; background: var(--white);
+    border: 1px solid var(--border); border-radius: 24px; padding: 4px;
+  }
+  .seg button {
+    font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink-mid);
+    background: transparent; border: none; border-radius: 20px;
+    padding: 8px 20px; cursor: pointer; transition: color .15s;
+  }
+  .seg button[aria-pressed="true"] { color: var(--white); background: var(--blue); }
+  .save-flag {
+    font-size: 12px; font-weight: 600; color: #2D6A2D; background: #EDF5ED;
+    border-radius: 20px; padding: 4px 12px;
+  }
+
+  /* ── Pricing grid ── */
+  main { max-width: 1080px; margin: 0 auto; padding: 24px 24px 40px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 20px; align-items: start;
+  }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 30px 26px;
+    display: flex; flex-direction: column; height: 100%;
+  }
+  .card.featured {
+    border: 2px solid var(--blue); box-shadow: 0 12px 32px -12px rgba(43,79,138,0.28);
+    position: relative;
+  }
+  @media (min-width: 901px) { .card.featured { transform: translateY(-8px); } }
+  .badge-pop {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--white); background: var(--blue); border-radius: 20px; padding: 5px 14px;
+    white-space: nowrap;
+  }
+
+  .card .name { font-size: 20px; font-weight: 600; color: var(--blue-dark); }
+  .card .who { font-size: 13px; color: var(--ink-light); margin-top: 4px; min-height: 38px; }
+
+  .price { margin: 22px 0 4px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .price .amt { font-size: 40px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; line-height: 1; }
+  .price .per { font-size: 14px; color: var(--ink-light); font-weight: 500; }
+  .price .strike { font-size: 19px; font-weight: 600; color: var(--ink-light); text-decoration: line-through; }
+  .price-note { font-size: 12.5px; color: var(--ink-mid); min-height: 18px; }
+  .price-note .strike { color: var(--ink-light); text-decoration: line-through; margin-right: 6px; }
+  .price-note .one-time { font-weight: 600; color: var(--blue-mid); }
+
+  .cta {
+    font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
+    border-radius: var(--radius-md); padding: 13px 18px; cursor: pointer;
+    margin: 22px 0 6px; width: 100%; transition: background .15s, transform .1s, border-color .15s;
+  }
+  .cta.primary { background: var(--blue); color: var(--white); border: none; }
+  .cta.primary:hover { background: var(--blue-dark); transform: translateY(-1px); }
+  .cta.ghost { background: var(--white); color: var(--blue); border: 1.5px solid var(--border-mid); }
+  .cta.ghost:hover { border-color: var(--blue-mid); color: var(--blue-dark); }
+  .cta-sub { font-size: 12px; color: var(--ink-light); text-align: center; }
+
+  .feat-head { font-size: 12px; font-weight: 600; color: var(--ink-mid); margin: 22px 0 12px; }
+  ul.feats { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  ul.feats li { font-size: 14px; color: var(--ink); padding-left: 28px; position: relative; line-height: 1.45; }
+  ul.feats li::before {
+    content: ""; position: absolute; left: 0; top: 2px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--blue-light);
+    /* blue check — green is reserved for score 8–10 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'%3E%3Cpath d='M4.5 9.2l2.7 2.7 6.1-6.1' fill='none' stroke='%232B4F8A' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  /* ── Trust strip ── */
+  .trust {
+    max-width: 1080px; margin: 8px auto 0; padding: 0 24px;
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 28px;
+  }
+  .trust span { font-size: 13px; color: var(--ink-mid); display: flex; align-items: center; gap: 8px; }
+  .trust span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--blue-mid); }
+
+  /* ── FAQ ── */
+  .faq { max-width: 720px; margin: 72px auto 0; padding: 0 24px; }
+  .faq h2 { font-size: 22px; font-weight: 600; color: var(--blue-dark); letter-spacing: -0.01em; text-align: center; margin-bottom: 26px; }
+  details {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius-md); margin-bottom: 12px; overflow: hidden;
+  }
+  details summary {
+    font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer;
+    padding: 18px 20px; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after {
+    content: "+"; font-size: 20px; font-weight: 400; color: var(--blue-mid); flex-shrink: 0; transition: transform .2s;
+  }
+  details[open] summary::after { content: "\2013"; }
+  details .body { padding: 0 20px 18px; font-size: 14px; color: var(--ink-mid); }
+
+  footer { border-top: 1px solid var(--border); background: var(--blue-light); color: var(--ink-mid); font-weight: 300; margin-top: 80px; }
+  .footer-inner { max-width: 1000px; margin: 0 auto; padding: 32px 24px 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px 40px; }
+  .footer-brand { min-width: 0; }
+  .footer-name { font-size: 15px; font-weight: 600; color: var(--blue-dark); letter-spacing: 0.01em; }
+  .footer-tagline { font-size: 13px; color: var(--ink-light); margin-top: 4px; }
+  .footer-links { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+  .footer-bottom { border-top: 1px solid var(--border-mid); text-align: center; font-size: 11px; color: var(--ink-light); padding: 14px 24px; }
+  footer a { color: var(--blue-mid); text-decoration: none; transition: color 0.15s; }
+  footer a:hover { color: var(--blue-dark); text-decoration: underline; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  :focus-visible { outline: 2px solid var(--blue-mid); outline-offset: 2px; border-radius: 4px; }
+  /* ── Notify / intent-capture modal (mirrors index email gate) ── */
+  .eg-overlay { position: fixed; inset: 0; background: rgba(26,30,46,0.55); align-items: center; justify-content: center; padding: 20px; z-index: 1000; display: none; }
+  .eg-overlay.open { display: flex; }
+  .eg-card { background: var(--white); border-radius: var(--radius-lg); padding: 28px 26px; max-width: 380px; width: 100%; position: relative; font-family: 'Montserrat', sans-serif; box-shadow: 0 20px 50px rgba(26,30,46,0.25); }
+  .eg-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 22px; color: var(--ink-light); cursor: pointer; line-height: 1; }
+  .eg-title { font-size: 18px; color: var(--ink); margin: 0 0 8px; font-weight: 700; }
+  .eg-sub { font-size: 13px; color: var(--ink-mid); margin: 0 0 18px; line-height: 1.5; }
+  .eg-input { width: 100%; box-sizing: border-box; padding: 11px 13px; margin-bottom: 10px; border: 1px solid var(--border-mid); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; color: var(--ink); }
+  .eg-input:focus { outline: none; border-color: var(--blue); }
+  .eg-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-mid); margin-bottom: 14px; line-height: 1.45; cursor: pointer; }
+  .eg-consent input { margin-top: 2px; flex-shrink: 0; }
+  .eg-consent a { color: var(--blue-mid); }
+  .eg-error { color: #8A1F1F; font-size: 12px; margin-bottom: 10px; }
+  .eg-btn { width: 100%; background: var(--blue); color: var(--white); border: none; border-radius: var(--radius-md); padding: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+  .eg-btn:hover { background: var(--blue-dark); }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo-wrap" href="/">
+    <img src="https://getsecondeye.com/img/secondeye.png" alt="Second Eye" class="logo-img">
+  </a>
+  <nav class="header-nav" aria-label="Primary">
+    <a class="header-link active" href="/pricing.html">Pricing</a>
+    <a class="header-link" href="/?join=1">Sign up</a>
+  </nav>
+  <button class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" onclick="toggleMenu(this)">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-menu" id="mobile-menu">
+    <a class="header-link active" href="/pricing.html">Pricing</a>
+    <a class="header-link" href="/?join=1">Sign up</a>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Plans for every kind of photographer.</h1>
+  <p class="sub">Start free with three critiques a month — no card needed. Upgrade when you want more, or buy a one-off pack. No lock-in, cancel anytime.</p>
+
+  <div class="toggle-wrap">
+    <div class="seg" role="group" aria-label="Billing period">
+      <button id="seg-month" aria-pressed="false" onclick="setBilling('month')">Monthly</button>
+      <button id="seg-year"  aria-pressed="true"  onclick="setBilling('year')">Yearly</button>
+    </div>
+    <span class="save-flag" id="save-flag">Save 17%</span>
+  </div>
+</section>
+
+<main>
+  <div class="grid">
+
+    <!-- FREE -->
+    <div class="card">
+      <div class="name">Free</div>
+      <div class="who">For photographers testing the water.</div>
+      <div class="price"><span class="amt">0 €</span><span class="per">/ forever</span></div>
+      <div class="price-note">No card, no commitment.</div>
+      <button class="cta primary" onclick="location.href='/#start'">Create free account</button>
+      <div class="cta-sub">Your first critique in under a minute</div>
+      <div class="feat-head">What you get</div>
+      <ul class="feats">
+        <li>3 critiques per month</li>
+        <li>Score across 6 dimensions, plus an overall</li>
+        <li>The one change to make next</li>
+        <li>Results on screen</li>
+      </ul>
+    </div>
+
+    <!-- PRO -->
+    <div class="card featured">
+      <div class="badge-pop">Most popular</div>
+      <div class="name">Pro</div>
+      <div class="who">For photographers serious about getting better.</div>
+      <div class="price">
+        <span class="amt" id="pro-amt">45 €</span>
+        <span class="strike" id="pro-strike">54 €</span>
+        <span class="per" id="pro-per">/ year</span>
+      </div>
+      <div class="price-note" id="pro-note">≈ 3.75 €/month, billed yearly</div>
+      <button class="cta primary" onclick="openNotify('pro')">Go Pro</button>
+      <div class="cta-sub">Launching soon — get notified</div>
+      <div class="feat-head">Everything in Free, plus</div>
+      <ul class="feats">
+        <li>Up to 50 critiques per month</li>
+        <li>Downloadable PDF critique report</li>
+        <li>Your progress tracked over time</li>
+      </ul>
+    </div>
+
+    <!-- PACK -->
+    <div class="card">
+      <div class="name">Critique Pack</div>
+      <div class="who">For occasional shoots — no subscription.</div>
+      <div class="price"><span class="amt">7 €</span><span class="per">/ 12 critiques</span></div>
+      <div class="price-note"><span class="one-time">One-time payment</span> · credits never expire</div>
+      <button class="cta primary" onclick="openNotify('pack')">Buy a pack</button>
+      <div class="cta-sub">Launching soon — get notified</div>
+      <div class="feat-head">What you get</div>
+      <ul class="feats">
+        <li>12 critiques, used at your pace</li>
+        <li>Score across 6 dimensions, plus an overall</li>
+        <li>Downloadable PDF critique report</li>
+        <li>No account subscription</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="trust">
+    <span>We never store your photos</span>
+    <span>Cancel anytime</span>
+    <span>Secure payment</span>
+  </div>
+</main>
+
+<section class="faq">
+  <h2>Questions</h2>
+
+  <details open>
+    <summary>What counts as one critique?</summary>
+    <div class="body">One photo analysed and scored is one critique. Uploading a new photo uses one; re-reading a critique you've already run doesn't.</div>
+  </details>
+  <details>
+    <summary>What happens to my photos?</summary>
+    <div class="body">Your photo is sent for analysis and then discarded — we don't keep uploaded photos on our systems once your critique is generated, and we never use them to train models. Full detail is in our <a href="/privacy.html">privacy policy</a>.</div>
+  </details>
+  <details>
+    <summary>Can I cancel Pro anytime?</summary>
+    <div class="body">Yes. Cancel whenever you like and you keep Pro until the end of the period you've paid for — no cancellation fee, no questions.</div>
+  </details>
+  <details>
+    <summary>Do pack credits expire?</summary>
+    <div class="body">No. A Critique Pack is a one-time payment and its 10 credits stay on your account until you use them — handy if you only shoot now and then.</div>
+  </details>
+  <details>
+    <summary>What if I reach my monthly limit?</summary>
+    <div class="body">On Free and Pro your critiques reset at the start of each month. Need more before then? Upgrade, or grab a one-off pack to top up without changing your plan.</div>
+  </details>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-name">Second Eye</div>
+      <div class="footer-tagline">AI photo critique &amp; scoring</div>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="mailto:hello@getsecondeye.com">Contact</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    © 2026 Second Eye &nbsp;·&nbsp; <a href="https://getsecondeye.com">getsecondeye.com</a>
+  </div>
+</footer>
+
+<div class="eg-overlay" id="notify-modal" role="dialog" aria-modal="true" aria-labelledby="nm-title">
+  <div class="eg-card">
+    <button class="eg-close" onclick="closeNotify()" aria-label="Close">×</button>
+    <h3 class="eg-title" id="nm-title">Launching soon</h3>
+    <p class="eg-sub" id="nm-sub">Leave your details and we'll email you when it goes live.</p>
+    <div id="nm-fields">
+      <input id="nm-name" class="eg-input" type="text" placeholder="First name" autocomplete="given-name" />
+      <input id="nm-email" class="eg-input" type="email" placeholder="you@email.com" autocomplete="email" />
+      <label class="eg-consent"><input id="nm-consent" type="checkbox" /><span>I agree to receive occasional emails from Second Eye and accept the <a href="/privacy.html" target="_blank">privacy policy</a>. Unsubscribe anytime.</span></label>
+      <div id="nm-error" class="eg-error" hidden></div>
+      <button class="eg-btn" id="nm-submit" onclick="submitNotify()">Notify me</button>
+    </div>
+    <div id="nm-success" hidden>
+      <p class="eg-sub">You're on the list — we'll email you the moment it's live.</p>
+      <button class="eg-btn" onclick="closeNotify()">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Pro is the only plan affected by the billing period. Default: yearly.
+  function setBilling(period) {
+    const year = period === 'year';
+    document.getElementById('seg-year').setAttribute('aria-pressed', String(year));
+    document.getElementById('seg-month').setAttribute('aria-pressed', String(!year));
+    const amt    = document.getElementById('pro-amt');
+    const per    = document.getElementById('pro-per');
+    const strike = document.getElementById('pro-strike');
+    const note   = document.getElementById('pro-note');
+    const flag   = document.getElementById('save-flag');
+    if (year) {
+      amt.textContent = '45 €';
+      strike.textContent = '54 €';
+      strike.style.display = '';
+      per.textContent = '/ year';
+      note.textContent = '\u2248 3.75 €/month, billed yearly';
+      flag.style.display = '';
+    } else {
+      amt.textContent = '4.50 €';
+      strike.style.display = 'none';
+      per.textContent = '/ month';
+      note.textContent = 'Billed monthly';
+      flag.style.display = 'none';
+    }
+  }
+  setBilling('year');
+
+  function toggleMenu(btn) {
+    const menu = document.getElementById('mobile-menu');
+    if (!menu) return;
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    menu.classList.toggle('open', !open);
+  }
+  function closeMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const burger = document.querySelector('.burger');
+    if (menu) menu.classList.remove('open');
+    if (burger) burger.setAttribute('aria-expanded', 'false');
+  }
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobile-menu');
+    const burger = document.querySelector('.burger');
+    if (!menu || !burger || !menu.classList.contains('open')) return;
+    if (!menu.contains(e.target) && !burger.contains(e.target)) closeMenu();
+  });
+  // ── Intent capture for paid plans (payment not live yet) ──
+  const NM_SUBSCRIBE_URL = '/.netlify/functions/subscribe';
+  const NM_CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
+  const NM_COPY = {
+    pro:  { title: 'Pro is launching soon', sub: "Leave your details and we'll email you the moment Pro goes live — you'll be first in line." },
+    pack: { title: 'Critique Packs are launching soon', sub: "Leave your details and we'll email you as soon as one-off packs are available." }
+  };
+  let nmPlan = 'pro';
+
+  function openNotify(plan) {
+    nmPlan = (plan === 'pack') ? 'pack' : 'pro';
+    const c = NM_COPY[nmPlan];
+    document.getElementById('nm-title').textContent = c.title;
+    document.getElementById('nm-sub').textContent = c.sub;
+    document.getElementById('nm-name').value = '';
+    document.getElementById('nm-email').value = '';
+    document.getElementById('nm-consent').checked = false;
+    document.getElementById('nm-error').hidden = true;
+    document.getElementById('nm-submit').disabled = false;
+    document.getElementById('nm-fields').hidden = false;
+    document.getElementById('nm-success').hidden = true;
+    document.getElementById('notify-modal').classList.add('open');
+  }
+  function closeNotify() {
+    document.getElementById('notify-modal').classList.remove('open');
+  }
+  async function submitNotify() {
+    const name = document.getElementById('nm-name').value.trim();
+    const email = document.getElementById('nm-email').value.trim();
+    const consent = document.getElementById('nm-consent').checked;
+    const err = document.getElementById('nm-error');
+    err.hidden = true;
+    if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      err.textContent = 'Please enter your name and a valid email.'; err.hidden = false; return;
+    }
+    if (!consent) {
+      err.textContent = 'Please tick the consent box to continue.'; err.hidden = false; return;
+    }
+    const btn = document.getElementById('nm-submit');
+    btn.disabled = true;
+    try {
+      const res = await fetch(NM_SUBSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, firstName: name, source: nmPlan + '_intent', consent: true, consentText: NM_CONSENT_TEXT })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch (e) {
+      err.textContent = e.message || 'Something went wrong. Please try again.';
+      err.hidden = false; btn.disabled = false; return;
+    }
+    document.getElementById('nm-fields').hidden = true;
+    document.getElementById('nm-success').hidden = false;
+  }
+  // Close on backdrop click or Escape
+  document.getElementById('notify-modal').addEventListener('click', function(e) { if (e.target === this) closeNotify(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNotify(); });
+</script>
+
+</body>
+</html>
