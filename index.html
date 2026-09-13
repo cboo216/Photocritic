@@ -1028,6 +1028,8 @@
   <input type="text" name="name" />
   <input type="email" name="email" />
   <input type="checkbox" name="consent" />
+  <input type="text" name="source" />
+  <input type="text" name="consentText" />
 </form>
 
 <header>
@@ -1659,7 +1661,7 @@ function resetForm() {
 /* ── EMAIL GATE / SIGN-UP MODAL + ANALYTICS ── */
 const EG_KEY = 'se_lead';
 const EG_COUNT_KEY = 'se_critiques';
-const SUBSCRIBE_URL = '/.netlify/functions/subscribe';
+const SUBSCRIBE_FORM = 'critique-signup'; // submissions go to Netlify Forms
 const CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
 
 const EG_COPY = {
@@ -1737,15 +1739,20 @@ async function submitEmailGate() {
   const btn = document.getElementById('eg-submit-btn');
   btn.disabled = true;
   try {
-    const res = await fetch(SUBSCRIBE_URL, {
+    const res = await fetch('/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, firstName: name, source: egSource, consent: true, consentText: CONSENT_TEXT })
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        'form-name': 'critique-signup',
+        'bot-field': '',
+        name: name,
+        email: email,
+        source: egSource,
+        consent: 'yes',
+        consentText: CONSENT_TEXT
+      }).toString()
     });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Something went wrong. Please try again.');
-    }
+    if (!res.ok) throw new Error('Something went wrong. Please try again.');
   } catch (e) {
     err.textContent = e.message || 'Something went wrong. Please try again.';
     err.hidden = false;
