@@ -309,7 +309,7 @@
     <!-- PACK -->
     <div class="card">
       <div class="name">Critique Pack</div>
-      <div class="who">For occasional shooters — no subscription.</div>
+      <div class="who">For occasional shoots — no subscription.</div>
       <div class="price"><span class="amt">7 €</span><span class="per">/ 12 critiques</span></div>
       <div class="price-note"><span class="one-time">One-time payment</span> · credits never expire</div>
       <button class="cta primary" onclick="openNotify('pack')">Buy a pack</button>
@@ -440,7 +440,7 @@
     if (!menu.contains(e.target) && !burger.contains(e.target)) closeMenu();
   });
   // ── Intent capture for paid plans (payment not live yet) ──
-  const NM_SUBSCRIBE_URL = '/.netlify/functions/subscribe';
+  const NM_FORM = 'critique-signup'; // submissions go to Netlify Forms
   const NM_CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
   const NM_COPY = {
     pro:  { title: 'Pro is launching soon', sub: "Leave your details and we'll email you the moment Pro goes live — you'll be first in line." },
@@ -480,15 +480,20 @@
     const btn = document.getElementById('nm-submit');
     btn.disabled = true;
     try {
-      const res = await fetch(NM_SUBSCRIBE_URL, {
+      const res = await fetch('/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, firstName: name, source: nmPlan + '_intent', consent: true, consentText: NM_CONSENT_TEXT })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          'form-name': 'critique-signup',
+          'bot-field': '',
+          name: name,
+          email: email,
+          source: nmPlan + '_intent',
+          consent: 'yes',
+          consentText: NM_CONSENT_TEXT
+        }).toString()
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Something went wrong. Please try again.');
-      }
+      if (!res.ok) throw new Error('Something went wrong. Please try again.');
     } catch (e) {
       err.textContent = e.message || 'Something went wrong. Please try again.';
       err.hidden = false; btn.disabled = false; return;
