@@ -113,6 +113,8 @@
       --green-bg:   #EDF5ED;
       --amber:      #8A5A00;
       --amber-bg:   #FFF8E6;
+      --teal:       #1C6E6A;
+      --teal-bg:    #E5F1F0;
       --red:        #8A1F1F;
       --red-bg:     #FDEEED;
       --radius-sm:  6px;
@@ -408,6 +410,67 @@
       opacity: 0.35;
       cursor: not-allowed;
       transform: none;
+    }
+
+    /* ── HEADER NAV ── */
+    .header-nav { display: flex; align-items: center; gap: 26px; }
+    .header-link {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink-mid);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+    .header-link:hover {
+      color: var(--blue-dark);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1.5px;
+    }
+    .header-link.active { color: var(--blue-dark); font-weight: 600; }
+
+    /* Burger (mobile) */
+    .burger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 42px; height: 42px;
+      padding: 9px;
+      background: none; border: none; cursor: pointer;
+      flex-shrink: 0;
+    }
+    .burger span {
+      display: block; width: 100%; height: 2px;
+      background: var(--ink-mid); border-radius: 2px;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+    .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      position: absolute; top: 70px; right: 12px;
+      display: none; flex-direction: column;
+      min-width: 190px; padding: 8px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 30px -10px rgba(28,54,96,0.22);
+      z-index: 30;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu .header-link { padding: 12px 14px; border-radius: var(--radius-sm); font-size: 15px; }
+    .mobile-menu .header-link:hover { background: var(--blue-light); text-decoration: none; color: var(--blue-dark); }
+
+    @media (max-width: 560px) {
+      .header-nav { display: none; }
+      .burger { display: flex; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .burger span { transition: none; }
     }
 
     /* ── TRUST SIGNALS ── */
@@ -969,8 +1032,19 @@
 
 <header>
   <a class="logo-wrap" href="/">
-    <img src="img/secondeye.png" alt="Second Eye" class="logo-img">
+    <img src="https://getsecondeye.com/img/secondeye.png" alt="Second Eye" class="logo-img">
   </a>
+  <nav class="header-nav" aria-label="Primary">
+    <a class="header-link" href="/pricing.html">Pricing</a>
+    <a class="header-link" href="#" onclick="showEmailGate('header'); return false;">Sign up</a>
+  </nav>
+  <button class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" onclick="toggleMenu(this)">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="mobile-menu" id="mobile-menu">
+    <a class="header-link" href="/pricing.html">Pricing</a>
+    <a class="header-link" href="#" onclick="closeMenu(); showEmailGate('header'); return false;">Sign up</a>
+  </div>
 </header>
 
 <main>
@@ -1431,6 +1505,10 @@ const userContent = [
       const n = parseInt(localStorage.getItem(EG_COUNT_KEY) || '0', 10) + 1;
       localStorage.setItem(EG_COUNT_KEY, n);
       track('critique_completed', { count: n });
+      if (n === 3 && !hasLead() && !postCritiqueGateShown) {
+        postCritiqueGateShown = true;
+        showEmailGate('post_critique');
+      }
     } catch(e){}
   } catch(err) {
     console.error('Analyze failed:', err);
@@ -1443,14 +1521,16 @@ const userContent = [
 }
 
 function scoreColor(s) {
-  if (s >= 8) return 'var(--green)';
-  if (s >= 6) return 'var(--amber)';
-  return 'var(--red)';
+  if (s >= 8) return 'var(--green)';   // 8–10 Strong
+  if (s >= 6) return 'var(--teal)';    // 6–7 Competent
+  if (s >= 4) return 'var(--amber)';   // 4–5 Needs work
+  return 'var(--red)';                 // 0–3 Snapshot
 }
 
 function scoreBg(s) {
   if (s >= 8) return 'var(--green-bg)';
-  if (s >= 6) return 'var(--amber-bg)';
+  if (s >= 6) return 'var(--teal-bg)';
+  if (s >= 4) return 'var(--amber-bg)';
   return 'var(--red-bg)';
 }
 
@@ -1576,9 +1656,35 @@ function resetForm() {
   document.getElementById('result-view').style.display = 'none';
 }
 
-/* ── EMAIL GATE + ANALYTICS ── */
+/* ── EMAIL GATE / SIGN-UP MODAL + ANALYTICS ── */
 const EG_KEY = 'se_lead';
 const EG_COUNT_KEY = 'se_critiques';
+const SUBSCRIBE_URL = '/.netlify/functions/subscribe';
+const CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
+
+const EG_COPY = {
+  header: {
+    title: 'Join the community',
+    sub: 'Create your free account to start getting honest critiques. You can pick a plan later, once you see how you use it.',
+    button: 'Register me',
+    success: "You're in — welcome to the Second Eye community."
+  },
+  post_critique: {
+    title: "That's your 3 free critiques",
+    sub: 'Create your free account to carry on — then pick the plan that fits how you shoot.',
+    button: 'Create free account',
+    success: "You're all set — taking you to the plans…"
+  },
+  pdf_gate: {
+    title: 'Download your critique as a PDF',
+    sub: 'Create your free account, then choose a plan — PDF export comes with Pro and the Critique Pack.',
+    button: 'Create free account',
+    success: "You're all set — taking you to the plans…"
+  }
+};
+
+let egSource = 'pdf_gate';
+let postCritiqueGateShown = false;
 
 // Points at PostHog if you've installed it; harmless no-op if not.
 function track(event, props) {
@@ -1590,10 +1696,29 @@ function hasLead() { try { return !!localStorage.getItem(EG_KEY); } catch(e){ re
 function requestPdf() {
   if (!currentCritique) return;
   track('pdf_click');
-  if (hasLead()) { window.print(); return; }
-  document.getElementById('email-gate').hidden = false;
-  track('email_gate_shown');
+  // PDF export is a paid feature. No plan system yet, so route everyone to register / choose a plan.
+  // (Later: if the user has an active paid plan → window.print(); return;)
+  if (hasLead()) { window.location.href = '/pricing.html'; return; }
+  showEmailGate('pdf_gate');
 }
+
+function showEmailGate(source) {
+  egSource = source;
+  const copy = EG_COPY[source];
+  document.getElementById('eg-title').textContent = copy.title;
+  document.getElementById('eg-sub').textContent = copy.sub;
+  document.getElementById('eg-submit-btn').textContent = copy.button;
+  document.getElementById('eg-name').value = '';
+  document.getElementById('eg-email').value = '';
+  document.getElementById('eg-consent').checked = false;
+  document.getElementById('eg-error').hidden = true;
+  document.getElementById('eg-submit-btn').disabled = false;
+  document.getElementById('eg-form-fields').hidden = false;
+  document.getElementById('eg-success').hidden = true;
+  document.getElementById('email-gate').hidden = false;
+  track('email_gate_shown', { source });
+}
+
 function closeEmailGate() { document.getElementById('email-gate').hidden = true; }
 
 async function submitEmailGate() {
@@ -1608,30 +1733,89 @@ async function submitEmailGate() {
   if (!consent) {
     err.textContent = 'Please tick the consent box to continue.'; err.hidden = false; return;
   }
-  const body = new URLSearchParams({ 'form-name': 'critique-signup', name, email, consent: 'yes' }).toString();
+
+  const btn = document.getElementById('eg-submit-btn');
+  btn.disabled = true;
   try {
-    await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
-  } catch(e) { /* don't lose the user over a network blip */ }
+    const res = await fetch(SUBSCRIBE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, firstName: name, source: egSource, consent: true, consentText: CONSENT_TEXT })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Something went wrong. Please try again.');
+    }
+  } catch (e) {
+    err.textContent = e.message || 'Something went wrong. Please try again.';
+    err.hidden = false;
+    btn.disabled = false;
+    return;
+  }
+
   try { localStorage.setItem(EG_KEY, email); } catch(e){}
-  track('email_captured');
-  closeEmailGate();
-  window.print();
+  track('email_captured', { source: egSource });
+
+  // Usage walls (out of free critiques, or PDF is paid) → send them to choose a plan.
+  if (egSource === 'post_critique' || egSource === 'pdf_gate') {
+    window.location.href = '/pricing.html';
+    return;
+  }
+  // "Sign up" (header) → registered regardless of plan; confirm and let them stay.
+  document.getElementById('eg-form-fields').hidden = true;
+  document.getElementById('eg-success-text').textContent = EG_COPY[egSource].success;
+  document.getElementById('eg-success').hidden = false;
 }
 </script>
 
-<!-- ── EMAIL GATE MODAL ── -->
+<!-- ── EMAIL GATE / SIGN-UP MODAL (shared across header, post-critique and PDF-gate surfaces) ── -->
 <div id="email-gate" class="eg-overlay" hidden>
   <div class="eg-card">
     <button class="eg-close" onclick="closeEmailGate()" aria-label="Close">×</button>
-    <h3 class="eg-title">Save your critique as a PDF</h3>
-    <p class="eg-sub">Enter your details and we'll unlock the export. We'll only send occasional photography tips — unsubscribe anytime.</p>
-    <input id="eg-name" class="eg-input" type="text" placeholder="First name" autocomplete="given-name" />
-    <input id="eg-email" class="eg-input" type="email" placeholder="you@email.com" autocomplete="email" />
-    <label class="eg-consent"><input id="eg-consent" type="checkbox" /><span>I agree to receive occasional emails from Second Eye. See our <a href="/privacy.html" target="_blank">privacy policy</a>.</span></label>
-    <div id="eg-error" class="eg-error" hidden></div>
-    <button class="eg-btn" onclick="submitEmailGate()">Unlock my PDF</button>
+    <h3 class="eg-title" id="eg-title">Create your free account</h3>
+    <p class="eg-sub" id="eg-sub">Create your free account to continue.</p>
+    <div id="eg-form-fields">
+      <input id="eg-name" class="eg-input" type="text" placeholder="First name" autocomplete="given-name" />
+      <input id="eg-email" class="eg-input" type="email" placeholder="you@email.com" autocomplete="email" />
+      <label class="eg-consent"><input id="eg-consent" type="checkbox" /><span>I agree to receive occasional emails from Second Eye and accept the <a href="/privacy.html" target="_blank">privacy policy</a>. Unsubscribe anytime.</span></label>
+      <div id="eg-error" class="eg-error" hidden></div>
+      <button class="eg-btn" id="eg-submit-btn" onclick="submitEmailGate()">Create free account</button>
+    </div>
+    <div id="eg-success" hidden>
+      <p class="eg-sub" id="eg-success-text">You're all set.</p>
+      <button class="eg-btn" onclick="closeEmailGate()">Done</button>
+    </div>
   </div>
 </div>
+
+<script>
+  function toggleMenu(btn) {
+    const menu = document.getElementById('mobile-menu');
+    if (!menu) return;
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    menu.classList.toggle('open', !open);
+  }
+  function closeMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const burger = document.querySelector('.burger');
+    if (menu) menu.classList.remove('open');
+    if (burger) burger.setAttribute('aria-expanded', 'false');
+  }
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobile-menu');
+    const burger = document.querySelector('.burger');
+    if (!menu || !burger || !menu.classList.contains('open')) return;
+    if (!menu.contains(e.target) && !burger.contains(e.target)) closeMenu();
+  });
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      if (new URLSearchParams(location.search).get('join') === '1' && typeof showEmailGate === 'function') {
+        showEmailGate('header');
+      }
+    } catch (e) {}
+  });
+</script>
 
 </body>
 </html>
