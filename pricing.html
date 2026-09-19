@@ -216,22 +216,15 @@
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   :focus-visible { outline: 2px solid var(--blue-mid); outline-offset: 2px; border-radius: 4px; }
-  /* ── Notify / intent-capture modal (mirrors index email gate) ── */
-  .eg-overlay { position: fixed; inset: 0; background: rgba(26,30,46,0.55); align-items: center; justify-content: center; padding: 20px; z-index: 1000; display: none; }
-  .eg-overlay.open { display: flex; }
-  .eg-card { background: var(--white); border-radius: var(--radius-lg); padding: 28px 26px; max-width: 380px; width: 100%; position: relative; font-family: 'Montserrat', sans-serif; box-shadow: 0 20px 50px rgba(26,30,46,0.25); }
-  .eg-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 22px; color: var(--ink-light); cursor: pointer; line-height: 1; }
-  .eg-title { font-size: 18px; color: var(--ink); margin: 0 0 8px; font-weight: 700; }
-  .eg-sub { font-size: 13px; color: var(--ink-mid); margin: 0 0 18px; line-height: 1.5; }
-  .eg-input { width: 100%; box-sizing: border-box; padding: 11px 13px; margin-bottom: 10px; border: 1px solid var(--border-mid); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; color: var(--ink); }
-  .eg-input:focus { outline: none; border-color: var(--blue); }
-  .eg-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-mid); margin-bottom: 14px; line-height: 1.45; cursor: pointer; }
-  .eg-consent input { margin-top: 2px; flex-shrink: 0; }
-  .eg-consent a { color: var(--blue-mid); }
-  .eg-error { color: #8A1F1F; font-size: 12px; margin-bottom: 10px; }
-  .eg-btn { width: 100%; background: var(--blue); color: var(--white); border: none; border-radius: var(--radius-md); padding: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
-  .eg-btn:hover { background: var(--blue-dark); }
 </style>
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="vu fu pu gu bu init Hu zu qu ju Gu Xl Bu Qu Du eh ih nh sh rh oh capture getExtension Uu cu hh calculateEventProperties uh register register_once register_for_session unregister unregister_for_session gh Nu dh getFeatureFlag getFeatureFlagPayload getFeatureFlagResult getAllFeatureFlags isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync mh identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset yh shutdown setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fh Xu createPersonProfile setInternalOrTestUser ph wu opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Ju debug Yl Os getPageViewId captureTraceFeedback captureTraceMetric Ru".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_pn4yvZNFKoDkb8qvYNe8uhDYrHmQajqmvugjtsAbCaVR', {
+        api_host: 'https://eu.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+    })
+</script>
 </head>
 <body>
 
@@ -296,8 +289,8 @@
         <span class="per" id="pro-per">/ year</span>
       </div>
       <div class="price-note" id="pro-note">≈ 3.75 €/month, billed yearly</div>
-      <button class="cta primary" onclick="openNotify('pro')">Go Pro</button>
-      <div class="cta-sub">Launching soon — get notified</div>
+      <button class="cta primary" onclick="location.href='/#pro'">Go Pro</button>
+      <div class="cta-sub">Cancel anytime</div>
       <div class="feat-head">Everything in Free, plus</div>
       <ul class="feats">
         <li>Up to 50 critiques per month</li>
@@ -309,11 +302,11 @@
     <!-- PACK -->
     <div class="card">
       <div class="name">Critique Pack</div>
-      <div class="who">For occasional shoots — no subscription.</div>
+      <div class="who">For occasional shooters — no subscription.</div>
       <div class="price"><span class="amt">7 €</span><span class="per">/ 12 critiques</span></div>
       <div class="price-note"><span class="one-time">One-time payment</span> · credits never expire</div>
-      <button class="cta primary" onclick="openNotify('pack')">Buy a pack</button>
-      <div class="cta-sub">Launching soon — get notified</div>
+      <button class="cta primary" onclick="location.href='/#pack'">Buy a pack</button>
+      <div class="cta-sub">Pay once, use whenever</div>
       <div class="feat-head">What you get</div>
       <ul class="feats">
         <li>12 critiques, used at your pace</li>
@@ -373,25 +366,6 @@
   </div>
 </footer>
 
-<div class="eg-overlay" id="notify-modal" role="dialog" aria-modal="true" aria-labelledby="nm-title">
-  <div class="eg-card">
-    <button class="eg-close" onclick="closeNotify()" aria-label="Close">×</button>
-    <h3 class="eg-title" id="nm-title">Launching soon</h3>
-    <p class="eg-sub" id="nm-sub">Leave your details and we'll email you when it goes live.</p>
-    <div id="nm-fields">
-      <input id="nm-name" class="eg-input" type="text" placeholder="First name" autocomplete="given-name" />
-      <input id="nm-email" class="eg-input" type="email" placeholder="you@email.com" autocomplete="email" />
-      <label class="eg-consent"><input id="nm-consent" type="checkbox" /><span>I agree to receive occasional emails from Second Eye and accept the <a href="/privacy.html" target="_blank">privacy policy</a>. Unsubscribe anytime.</span></label>
-      <div id="nm-error" class="eg-error" hidden></div>
-      <button class="eg-btn" id="nm-submit" onclick="submitNotify()">Notify me</button>
-    </div>
-    <div id="nm-success" hidden>
-      <p class="eg-sub">You're on the list — we'll email you the moment it's live.</p>
-      <button class="eg-btn" onclick="closeNotify()">Done</button>
-    </div>
-  </div>
-</div>
-
 <script>
   // Pro is the only plan affected by the billing period. Default: yearly.
   function setBilling(period) {
@@ -439,71 +413,6 @@
     if (!menu || !burger || !menu.classList.contains('open')) return;
     if (!menu.contains(e.target) && !burger.contains(e.target)) closeMenu();
   });
-  // ── Intent capture for paid plans (payment not live yet) ──
-  const NM_FORM = 'critique-signup'; // submissions go to Netlify Forms
-  const NM_CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
-  const NM_COPY = {
-    pro:  { title: 'Pro is launching soon', sub: "Leave your details and we'll email you the moment Pro goes live — you'll be first in line." },
-    pack: { title: 'Critique Packs are launching soon', sub: "Leave your details and we'll email you as soon as one-off packs are available." }
-  };
-  let nmPlan = 'pro';
-
-  function openNotify(plan) {
-    nmPlan = (plan === 'pack') ? 'pack' : 'pro';
-    const c = NM_COPY[nmPlan];
-    document.getElementById('nm-title').textContent = c.title;
-    document.getElementById('nm-sub').textContent = c.sub;
-    document.getElementById('nm-name').value = '';
-    document.getElementById('nm-email').value = '';
-    document.getElementById('nm-consent').checked = false;
-    document.getElementById('nm-error').hidden = true;
-    document.getElementById('nm-submit').disabled = false;
-    document.getElementById('nm-fields').hidden = false;
-    document.getElementById('nm-success').hidden = true;
-    document.getElementById('notify-modal').classList.add('open');
-  }
-  function closeNotify() {
-    document.getElementById('notify-modal').classList.remove('open');
-  }
-  async function submitNotify() {
-    const name = document.getElementById('nm-name').value.trim();
-    const email = document.getElementById('nm-email').value.trim();
-    const consent = document.getElementById('nm-consent').checked;
-    const err = document.getElementById('nm-error');
-    err.hidden = true;
-    if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      err.textContent = 'Please enter your name and a valid email.'; err.hidden = false; return;
-    }
-    if (!consent) {
-      err.textContent = 'Please tick the consent box to continue.'; err.hidden = false; return;
-    }
-    const btn = document.getElementById('nm-submit');
-    btn.disabled = true;
-    try {
-      const res = await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          'form-name': 'critique-signup',
-          'bot-field': '',
-          name: name,
-          email: email,
-          source: nmPlan + '_intent',
-          consent: 'yes',
-          consentText: NM_CONSENT_TEXT
-        }).toString()
-      });
-      if (!res.ok) throw new Error('Something went wrong. Please try again.');
-    } catch (e) {
-      err.textContent = e.message || 'Something went wrong. Please try again.';
-      err.hidden = false; btn.disabled = false; return;
-    }
-    document.getElementById('nm-fields').hidden = true;
-    document.getElementById('nm-success').hidden = false;
-  }
-  // Close on backdrop click or Escape
-  document.getElementById('notify-modal').addEventListener('click', function(e) { if (e.target === this) closeNotify(); });
-  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeNotify(); });
 </script>
 
 </body>
