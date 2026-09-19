@@ -1020,6 +1020,14 @@
     .eg-btn:hover { background: var(--blue-dark); }
   </style>
   <!-- PDF export now uses the browser's native print engine — no library needed -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="vu fu pu gu bu init Hu zu qu ju Gu Xl Bu Qu Du eh ih nh sh rh oh capture getExtension Uu cu hh calculateEventProperties uh register register_once register_for_session unregister unregister_for_session gh Nu dh getFeatureFlag getFeatureFlagPayload getFeatureFlagResult getAllFeatureFlags isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync mh identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset yh shutdown setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fh Xu createPersonProfile setInternalOrTestUser ph wu opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Ju debug Yl Os getPageViewId captureTraceFeedback captureTraceMetric Ru".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_pn4yvZNFKoDkb8qvYNe8uhDYrHmQajqmvugjtsAbCaVR', {
+        api_host: 'https://eu.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+    })
+</script>
 </head>
 <body>
 
@@ -1028,8 +1036,6 @@
   <input type="text" name="name" />
   <input type="email" name="email" />
   <input type="checkbox" name="consent" />
-  <input type="text" name="source" />
-  <input type="text" name="consentText" />
 </form>
 
 <header>
@@ -1190,14 +1196,17 @@
 const SYSTEM_PROMPT = `You are a demanding but fair photography mentor. Your role is to evaluate photographs with honesty, precision, and the long-term improvement of the photographer in mind. You do not flatter. You do not soften scores to protect feelings. You believe that honest, specific feedback is the most respectful thing you can offer a photographer who wants to grow.
 
 SCORING SCALE
-Score overall and each dimension from 1 to 10. The label follows the band the score falls in — never label a score outside its band:
-0–3  Snapshot — little evident photographer decision; weak or generic execution (1–2: the camera did the work; 3: some intent, poor execution)
-4–5  Needs work — a genuine attempt undermined by clear problems in composition, technique, or timing
-6–7  Competent — technically sound and controlled; solid and safe rather than striking (7: clear vision, good execution, only minor issues)
-8–10 Strong — stands out and holds attention (8: memorable, near-professional; 9: portfolio quality; 10: world-class, would stop anyone scrolling)
+Score overall and each dimension from 1 to 10:
+1–2  Unintentional capture — the camera did the work; no evident photographer decision
+3–4  Snapshot — some intent present but execution is weak or generic
+5–6  Competent capture — technically acceptable, compositionally safe, forgettable
+7    Strong — clear vision, good execution, minor issues
+8    Excellent — stands out, memorable, near-professional
+9    Exceptional — portfolio quality, very few people shoot at this level
+10   World-class — publishable, would stop anyone scrolling
 
-Score labels (assigned strictly by band, not per point):
-0–3: Snapshot | 4–5: Needs work | 6–7: Competent | 8–10: Strong
+Score labels:
+1–2: Unintentional capture | 3–4: Snapshot | 5–6: Competent capture | 7: Strong | 8: Excellent | 9: Exceptional | 10: World-class
 
 INPUT FORMAT
 You receive a photograph and optional context:
@@ -1247,7 +1256,7 @@ OUTPUT FORMAT
 Respond ONLY with valid JSON. No markdown, no backticks, no preamble.
 {
   "overall_score": <number 1–10>,
-  "score_label": "<one of: Snapshot | Needs work | Competent | Strong — matching the band of the overall score>",
+  "score_label": "<label from scoring scale>",
   "score_rationale": "<2–3 sentences explaining exactly why this score and not one point higher or lower>",
   "overall_summary": "<one sentence — the single most important thing to know about this image>",
   "context_acknowledged": "<one sentence confirming understood intent/conditions, and noting if EXIF informed evaluation>",
@@ -1533,14 +1542,6 @@ function scoreBg(s) {
   return 'var(--red-bg)';
 }
 
-// Label is derived from the score so it always matches the colour band (brand guide).
-function scoreLabel(s) {
-  if (s >= 8) return 'Strong';        // 8–10
-  if (s >= 6) return 'Competent';     // 6–7
-  if (s >= 4) return 'Needs work';    // 4–5
-  return 'Snapshot';                  // 0–3
-}
-
 function renderResult(r, exifParts) {
   currentCritique = { result: r, exifParts: exifParts };
   
@@ -1590,7 +1591,7 @@ function renderResult(r, exifParts) {
       <div class="score-header" style="background:${scoreBg(r.overall_score)}; border-color:${scoreColor(r.overall_score)}22;">
         <div class="score-number" style="color:${scoreColor(r.overall_score)}">${r.overall_score}</div>
         <div class="score-meta">
-          <div class="score-label-text" style="color:${scoreColor(r.overall_score)}">${scoreLabel(r.overall_score)}</div>
+          <div class="score-label-text" style="color:${scoreColor(r.overall_score)}">${r.score_label || ''}</div>
           <div class="score-summary">${r.overall_summary}</div>
           ${rationaleHTML}
         </div>
@@ -1666,7 +1667,7 @@ function resetForm() {
 /* ── EMAIL GATE / SIGN-UP MODAL + ANALYTICS ── */
 const EG_KEY = 'se_lead';
 const EG_COUNT_KEY = 'se_critiques';
-const SUBSCRIBE_FORM = 'critique-signup'; // submissions go to Netlify Forms
+const SUBSCRIBE_URL = '/.netlify/functions/subscribe';
 const CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
 
 const EG_COPY = {
@@ -1744,20 +1745,15 @@ async function submitEmailGate() {
   const btn = document.getElementById('eg-submit-btn');
   btn.disabled = true;
   try {
-    const res = await fetch('/', {
+    const res = await fetch(SUBSCRIBE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        'form-name': 'critique-signup',
-        'bot-field': '',
-        name: name,
-        email: email,
-        source: egSource,
-        consent: 'yes',
-        consentText: CONSENT_TEXT
-      }).toString()
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, firstName: name, source: egSource, consent: true, consentText: CONSENT_TEXT })
     });
-    if (!res.ok) throw new Error('Something went wrong. Please try again.');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Something went wrong. Please try again.');
+    }
   } catch (e) {
     err.textContent = e.message || 'Something went wrong. Please try again.';
     err.hidden = false;
