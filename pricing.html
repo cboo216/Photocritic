@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#2B4F8A">
 <title>Pricing — Second Eye</title>
-<meta name="description" content="Simple pricing for honest AI photo critique. Start free with three critiques a month, go Pro for more, or buy a one-off pack. No lock-in.">
+<meta name="description" content="Simple pricing for honest AI photo critique. Start free with three critiques a month, go Pro or Studio for more, or buy a one-off pack. No lock-in.">
 <link rel="canonical" href="https://getsecondeye.com/pricing.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,10 +143,12 @@
   /* ── Pricing grid ── */
   main { max-width: var(--page-max); margin: 0 auto; padding: 24px var(--gutter) 40px; }
   .grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 20px; align-items: start;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; align-items: start;
   }
-  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+  @media (min-width: 981px) { .grid .card { padding: 28px 20px; } .price .amt { font-size: 36px; } }
+  @media (max-width: 980px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
 
   .card {
     background: var(--white); border: 1px solid var(--border);
@@ -157,7 +159,9 @@
     border: 2px solid var(--blue); box-shadow: 0 12px 32px -12px rgba(43,79,138,0.28);
     position: relative;
   }
-  @media (min-width: 901px) { .card.featured { transform: translateY(-8px); } }
+  @media (min-width: 981px) { .card.featured { transform: translateY(-8px); } }
+  /* Grid children stretch to the row height only where cards sit side by side */
+  @media (min-width: 621px) { .grid { align-items: stretch; } }
   .badge-pop {
     position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
@@ -174,7 +178,7 @@
   .price .strike { font-size: 19px; font-weight: 600; color: var(--ink-light); text-decoration: line-through; }
   .price-note { font-size: 12.5px; color: var(--ink-mid); min-height: 18px; }
   .price-note .strike { color: var(--ink-light); text-decoration: line-through; margin-right: 6px; }
-  .price-note .one-time { font-weight: 600; color: var(--blue-mid); }
+  .price-note .one-time { font-weight: 600; color: var(--blue-mid); white-space: nowrap; }
 
   .cta {
     font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
@@ -186,6 +190,32 @@
   .cta.ghost { background: var(--white); color: var(--blue); border: 1.5px solid var(--border-mid); }
   .cta.ghost:hover { border-color: var(--blue-mid); color: var(--blue-dark); }
   .cta-sub { font-size: 12px; color: var(--ink-light); text-align: center; }
+
+  /* ── Studio (waitlist / fake-door test) ── */
+  .badge-soon {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--blue-dark); background: var(--blue-light); border: 1px solid var(--border-mid);
+    border-radius: 20px; padding: 4px 14px; white-space: nowrap;
+  }
+  .card.studio { position: relative; }
+  .wl { margin-top: 14px; }
+  .wl[hidden] { display: none; }
+  .wl input[type="text"], .wl input[type="email"] {
+    width: 100%; padding: 10px 12px; margin-bottom: 8px;
+    font-family: inherit; font-size: 14px; color: var(--ink);
+    border: 1.5px solid var(--border-mid); border-radius: var(--radius-md); background: var(--white);
+  }
+  .wl input:focus { outline: none; border-color: var(--blue-mid); }
+  .wl-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; color: var(--ink-mid); line-height: 1.45; margin: 4px 0 10px; cursor: pointer; }
+  .wl-consent input { margin-top: 2px; flex-shrink: 0; }
+  .wl-consent a { color: var(--blue-mid); }
+  .wl-error { font-size: 12.5px; color: var(--red, #8A1F1F); margin-bottom: 8px; }
+  .wl-error[hidden] { display: none; }
+  .wl .cta { margin: 0 0 4px; }
+  .wl-done { margin-top: 14px; font-size: 13.5px; color: var(--ink); background: var(--blue-pale); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; }
+  .wl-done[hidden] { display: none; }
+  .cta:disabled { opacity: 0.6; cursor: progress; transform: none; }
 
   .feat-head { font-size: 12px; font-weight: 600; color: var(--ink-mid); margin: 22px 0 12px; }
   ul.feats { list-style: none; display: flex; flex-direction: column; gap: 11px; }
@@ -287,7 +317,7 @@
       <div class="who">For photographers testing the water.</div>
       <div class="price"><span class="amt">0 €</span><span class="per">/ forever</span></div>
       <div class="price-note">No card, no commitment.</div>
-      <button class="cta primary" onclick="location.href='/#start'">Create free account</button>
+      <button class="cta primary" onclick="planClick('free', '/#start')">Create free account</button>
       <div class="cta-sub">Your first critique in under a minute</div>
       <div class="feat-head">What you get</div>
       <ul class="feats">
@@ -305,11 +335,11 @@
       <div class="who">For photographers serious about getting better.</div>
       <div class="price">
         <span class="amt" id="pro-amt">45 €</span>
-        <span class="strike" id="pro-strike">54 €</span>
+        <span class="strike" id="pro-strike" style="display:none"></span>
         <span class="per" id="pro-per">/ year</span>
       </div>
-      <div class="price-note" id="pro-note">≈ 3.75 €/month, billed yearly</div>
-      <button class="cta primary" onclick="location.href='/#pro'">Go Pro</button>
+      <div class="price-note" id="pro-note">≈ 3.75 €/month, billed yearly<br><span class="one-time">Save 9 €</span></div>
+      <button class="cta primary" onclick="planClick('pro', '/#pro')">Go Pro</button>
       <div class="cta-sub">Cancel anytime</div>
       <div class="feat-head">Everything in Free, plus</div>
       <ul class="feats">
@@ -319,13 +349,44 @@
       </ul>
     </div>
 
+    <!-- STUDIO — waitlist (fake-door test: measure demand before building) -->
+    <div class="card studio" id="studio">
+      <div class="badge-soon">Coming soon</div>
+      <div class="name">Studio</div>
+      <div class="who">For prolific shooters working through whole shoots.</div>
+      <div class="price">
+        <span class="amt" id="studio-amt">120 €</span>
+        <span class="strike" id="studio-strike" style="display:none"></span>
+        <span class="per" id="studio-per">/ year</span>
+      </div>
+      <div class="price-note" id="studio-note">≈ 10 €/month, billed yearly<br><span class="one-time">· Save 24 €</span></div>
+      <button class="cta ghost" id="studio-cta" onclick="openWaitlist()" aria-expanded="false" aria-controls="studio-wl">Join the waitlist</button>
+      <div class="cta-sub" id="studio-sub">We'll email you when it opens</div>
+
+      <div class="wl" id="studio-wl" hidden>
+        <input id="wl-name" type="text" placeholder="First name" autocomplete="given-name" aria-label="First name">
+        <input id="wl-email" type="email" placeholder="you@email.com" autocomplete="email" aria-label="Email">
+        <label class="wl-consent"><input id="wl-consent" type="checkbox"><span>I agree to receive occasional emails from Second Eye and accept the <a href="/privacy.html" target="_blank">privacy policy</a>. Unsubscribe anytime.</span></label>
+        <div class="wl-error" id="wl-error" role="alert" hidden></div>
+        <button class="cta primary" id="wl-submit" onclick="submitWaitlist()">Save my spot</button>
+      </div>
+      <div class="wl-done" id="wl-done" role="status" hidden>You're on the list. We'll let you know as soon as Studio opens.</div>
+
+      <div class="feat-head">Everything in Pro, plus</div>
+      <ul class="feats">
+        <li>Up to 300 critiques per month</li>
+        <li>Compare up to 5 shots from one shoot — ranked, with why</li>
+        <li>Priority processing</li>
+      </ul>
+    </div>
+
     <!-- PACK -->
     <div class="card">
       <div class="name">Critique Pack</div>
       <div class="who">For occasional shooters — no subscription.</div>
       <div class="price"><span class="amt">7 €</span><span class="per">/ 12 critiques</span></div>
       <div class="price-note"><span class="one-time">One-time payment</span> · credits never expire</div>
-      <button class="cta primary" onclick="location.href='/#pack'">Buy a pack</button>
+      <button class="cta primary" onclick="planClick('pack', '/#pack')">Buy a pack</button>
       <div class="cta-sub">Pay once, use whenever</div>
       <div class="feat-head">What you get</div>
       <ul class="feats">
@@ -361,7 +422,11 @@
   </details>
   <details>
     <summary>Do pack credits expire?</summary>
-    <div class="body">No. A Critique Pack is a one-time payment and its 10 credits stay on your account until you use them — handy if you only shoot now and then.</div>
+    <div class="body">No. A Critique Pack is a one-time payment and its 12 credits stay on your account until you use them — handy if you only shoot now and then.</div>
+  </details>
+  <details>
+    <summary>When will Studio be available?</summary>
+    <div class="body">We're opening Studio once enough photographers ask for it. Join the waitlist on the Studio card and you'll be the first to know. Joining is free and doesn't commit you to anything.</div>
   </details>
   <details>
     <summary>What if I reach my monthly limit?</summary>
@@ -386,32 +451,103 @@
 </footer>
 
 <script>
-  // Pro is the only plan affected by the billing period. Default: yearly.
+  // Pro and Studio follow the billing period. Default: yearly.
+  const BILLING = {
+    // Yearly saving is shown in the note (same style as "One-time payment"), not as a strike-through price
+    pro:    { year: ['45 €',  '', '\u2248 3.75 €/month, billed yearly<br><span class="one-time">Save 9 €</span>'],  month: '4.50 €' },
+    studio: { year: ['120 €', '', '\u2248 10 €/month, billed yearly<br><span class="one-time">Save 24 €</span>'], month: '12 €' },
+  };
+  let billing = 'year';
   function setBilling(period) {
-    const year = period === 'year';
-    document.getElementById('seg-year').setAttribute('aria-pressed', String(year));
-    document.getElementById('seg-month').setAttribute('aria-pressed', String(!year));
-    const amt    = document.getElementById('pro-amt');
-    const per    = document.getElementById('pro-per');
-    const strike = document.getElementById('pro-strike');
-    const note   = document.getElementById('pro-note');
-    const flag   = document.getElementById('save-flag');
-    if (year) {
-      amt.textContent = '45 €';
-      strike.textContent = '54 €';
-      strike.style.display = '';
-      per.textContent = '/ year';
-      note.textContent = '\u2248 3.75 €/month, billed yearly';
-      flag.style.display = '';
-    } else {
-      amt.textContent = '4.50 €';
-      strike.style.display = 'none';
-      per.textContent = '/ month';
-      note.textContent = 'Billed monthly';
-      flag.style.display = 'none';
+    billing = period;
+    for (const plan of ['pro', 'studio']) {
+      const cfg = BILLING[plan];
+      const year = period === 'year';
+      document.getElementById(plan + '-amt').textContent = year ? cfg.year[0] : cfg.month;
+      const strike = document.getElementById(plan + '-strike');
+      strike.textContent = year ? cfg.year[1] : '';
+      strike.style.display = (year && cfg.year[1]) ? '' : 'none';
+      document.getElementById(plan + '-per').textContent = year ? '/ year' : '/ month';
+      document.getElementById(plan + '-note').innerHTML = year ? cfg.year[2] : 'Billed monthly';
     }
+    document.getElementById('seg-year').setAttribute('aria-pressed', String(period === 'year'));
+    document.getElementById('seg-month').setAttribute('aria-pressed', String(period !== 'year'));
+    document.getElementById('save-flag').style.display = period === 'year' ? '' : 'none';
   }
   setBilling('year');
+
+  // ── Analytics ──
+  function track(event, props) {
+    try { if (window.posthog) window.posthog.capture(event, props || {}); } catch (e) {}
+  }
+  // One event for every plan button → compare Studio vs Pro click-through in PostHog
+  function planClick(plan, href) {
+    track('plan_cta_clicked', { plan, billing });
+    if (href) location.href = href;
+  }
+
+  // ── Studio waitlist ──
+  const SUBSCRIBE_URL = '/.netlify/functions/subscribe';
+  const CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
+  const WL_KEY = 'se_studio_waitlist';
+
+  function openWaitlist() {
+    const wl = document.getElementById('studio-wl');
+    const btn = document.getElementById('studio-cta');
+    if (!wl.hidden) return;
+    planClick('studio');
+    wl.hidden = false;
+    btn.hidden = true;
+    document.getElementById('studio-sub').hidden = true;
+    btn.setAttribute('aria-expanded', 'true');
+    // Prefill from an earlier sign-up on the homepage, if any
+    try { const known = localStorage.getItem('se_lead'); if (known) document.getElementById('wl-email').value = known; } catch (e) {}
+    if (window.matchMedia('(pointer: fine)').matches) document.getElementById('wl-name').focus();
+  }
+
+  async function submitWaitlist() {
+    const name = document.getElementById('wl-name').value.trim();
+    const email = document.getElementById('wl-email').value.trim();
+    const consent = document.getElementById('wl-consent').checked;
+    const err = document.getElementById('wl-error');
+    err.hidden = true;
+    if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      err.textContent = 'Please enter your first name and a valid email.'; err.hidden = false; return;
+    }
+    if (!consent) {
+      err.textContent = 'Please tick the box so we can email you when Studio opens.'; err.hidden = false; return;
+    }
+    const btn = document.getElementById('wl-submit');
+    btn.disabled = true;
+    try {
+      const res = await fetch(SUBSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, firstName: name, source: 'studio_waitlist', consent: true, consentText: CONSENT_TEXT })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch (e) {
+      err.textContent = e.message || 'Something went wrong. Please try again.';
+      err.hidden = false; btn.disabled = false; return;
+    }
+    try { localStorage.setItem(WL_KEY, '1'); localStorage.setItem('se_lead', email); } catch (e) {}
+    track('studio_waitlist_joined', { billing });
+    document.getElementById('studio-wl').hidden = true;
+    document.getElementById('wl-done').hidden = false;
+  }
+
+  // Returning visitor who already joined: show the confirmation instead of the button
+  try {
+    if (localStorage.getItem(WL_KEY)) {
+      document.getElementById('studio-cta').hidden = true;
+      document.getElementById('studio-sub').hidden = true;
+      document.getElementById('wl-done').hidden = false;
+    }
+  } catch (e) {}
+
 
   function toggleMenu(btn) {
     const menu = document.getElementById('mobile-menu');
