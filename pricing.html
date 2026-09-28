@@ -34,6 +34,15 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* iOS/Android: stop the browser inflating text in landscape */
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+    /* iOS zooms the page on focus when a field's text is under 16px, and doesn't zoom back.
+       Keep form text at 16px on touch-size screens. */
+    @media (max-width: 820px) {
+      input, select, textarea { font-size: 16px !important; }
+    }
+
   body {
     font-family: 'Montserrat', sans-serif;
     color: var(--ink);
