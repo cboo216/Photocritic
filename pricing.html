@@ -42,7 +42,9 @@
   /* ── Header (harmonised with index) ── */
   header {
     position: sticky; top: 0; z-index: 10;
-    height: 70px; padding: 0 15px;
+    /* Same gutter as index.html: aligns with a 1000px / 20px-padded content column */
+    --header-gutter: max(20px, calc((100% - 960px) / 2));
+    height: 70px; padding: 0 var(--header-gutter);
     display: flex; align-items: center; justify-content: space-between;
     background: rgba(255,255,255,0.97);
     backdrop-filter: blur(8px);
@@ -78,7 +80,7 @@
   .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   .mobile-menu {
-    position: absolute; top: 70px; right: 12px;
+    position: absolute; top: 70px; right: var(--header-gutter);
     display: none; flex-direction: column;
     min-width: 190px; padding: 8px;
     background: var(--white); border: 1px solid var(--border);
@@ -92,7 +94,10 @@
 
   @media (max-width: 560px) {
     .header-nav { display: none; }
-    .burger { display: flex; }
+    .burger { display: flex; margin-right: -9px; } /* offset inner padding so the icon edge aligns */
+  }
+  @media (max-width: 480px) {
+    header { --header-gutter: 16px; }
   }
 
   /* ── Hero ── */
@@ -121,7 +126,8 @@
   }
 
   /* ── Pricing grid ── */
-  main { max-width: 1080px; margin: 0 auto; padding: 24px 24px 40px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 24px 20px 40px; }
+  @media (max-width: 480px) { main { padding: 24px 16px 40px; } }
   .grid {
     display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 20px; align-items: start;
@@ -230,7 +236,7 @@
 
 <header>
   <a class="logo-wrap" href="/">
-    <img src="https://getsecondeye.com/img/secondeye.png" alt="Second Eye" class="logo-img">
+    <img src="https://getsecondeye.com/img/secondeye2.png" alt="Second Eye" class="logo-img">
   </a>
   <nav class="header-nav" aria-label="Primary">
     <a class="header-link active" href="/pricing.html">Pricing</a>
