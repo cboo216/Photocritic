@@ -133,8 +133,11 @@
 
     /* ── HEADER ── */
     header {
+      /* Horizontal gutter mirrors <main> (max-width 1000px, 20px side padding)
+         so the logo and "Sign up" line up with the page content edges. */
+      --header-gutter: max(20px, calc((100% - 960px) / 2));
       border-bottom: 1px solid var(--border);
-      padding: 0 15px;
+      padding: 0 var(--header-gutter);
       height: 70px;
       display: flex;
       align-items: center;
@@ -155,7 +158,7 @@
 
     /* Inline SVG logo (camera aperture + eye arc, matches brand) */
     .logo-img {
-      height: 40px;
+      height: 35px;
       width: auto;
       flex-shrink: 0;
     }
@@ -452,7 +455,7 @@
     .burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
     .mobile-menu {
-      position: absolute; top: 70px; right: 12px;
+      position: absolute; top: 70px; right: var(--header-gutter);
       display: none; flex-direction: column;
       min-width: 190px; padding: 8px;
       background: var(--white);
@@ -467,7 +470,7 @@
 
     @media (max-width: 560px) {
       .header-nav { display: none; }
-      .burger { display: flex; }
+      .burger { display: flex; margin-right: -9px; } /* offset inner padding so the icon edge aligns */
     }
     @media (prefers-reduced-motion: reduce) {
       .burger span { transition: none; }
@@ -964,6 +967,7 @@
 
     @media (max-width: 480px) {
       main { padding: 28px 16px 60px; }
+      header { --header-gutter: 16px; }
       .hero-title { margin-bottom: 18px; }
       .dim-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
       .dimensions-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1040,7 +1044,7 @@
 
 <header>
   <a class="logo-wrap" href="/">
-    <img src="https://getsecondeye.com/img/secondeye.png" alt="Second Eye" class="logo-img">
+    <img src="https://getsecondeye.com/img/secondeye-OK.png" alt="Second Eye" class="logo-img">
   </a>
   <nav class="header-nav" aria-label="Primary">
     <a class="header-link" href="/pricing.html">Pricing</a>
