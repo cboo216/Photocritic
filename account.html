@@ -314,6 +314,40 @@
   .center-card p { color: var(--ink-mid); font-size: 14.5px; margin-bottom: 18px; }
   .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: space-between; align-items: center; margin: 4px 0 18px; }
   [hidden] { display: none !important; }
+  /* ── My critiques ── */
+  .hist-head { display: flex; justify-content: space-between; align-items: baseline; margin: 34px 0 14px; gap: 12px; }
+  .hist-head h2 { font-size: 20px; font-weight: 600; color: var(--blue-dark); letter-spacing: -0.01em; }
+  .hist-head span { font-size: 12.5px; color: var(--ink-light); }
+  .hist { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .hcard { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; text-align: left; font: inherit; color: inherit; padding: 0; transition: border-color .15s, transform .1s; }
+  .hcard:hover { border-color: var(--blue-mid); transform: translateY(-1px); }
+  .hthumb { position: relative; aspect-ratio: 4 / 3; background: var(--blue-light); display: flex; align-items: center; justify-content: center; color: var(--ink-light); font-size: 11.5px; }
+  .hthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hscore { position: absolute; top: 8px; right: 8px; min-width: 34px; height: 34px; padding: 0 6px; border-radius: 17px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+  .hmeta { padding: 10px 12px 12px; }
+  .hgenre { font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hdate { font-size: 11.5px; color: var(--ink-light); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-empty { text-align: center; padding: 30px 20px; }
+  .hist-empty p { color: var(--ink-mid); font-size: 14px; margin-bottom: 14px; }
+  /* Critique detail */
+  .dov { position: fixed; inset: 0; background: rgba(26,30,46,.55); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; z-index: 900; overflow-y: auto; }
+  .dcard { background: var(--white); border-radius: var(--radius-lg); max-width: 640px; width: 100%; padding: 26px 24px; position: relative; }
+  .dclose { position: absolute; top: 10px; right: 14px; background: none; border: none; font-size: 26px; color: var(--ink-light); cursor: pointer; line-height: 1; padding: 4px; }
+  .dtop { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; padding-right: 26px; }
+  .dtop img { width: 110px; height: 82px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; background: var(--blue-light); }
+  .dnum { font-size: 40px; font-weight: 700; line-height: 1; }
+  .dlabel { font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .dsub { font-size: 12px; color: var(--ink-light); margin-top: 4px; }
+  .dsum { font-size: 14.5px; color: var(--ink); margin-bottom: 16px; line-height: 1.55; }
+  .ddims { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+  .ddim { background: var(--blue-pale); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; }
+  .ddim b { display: block; font-size: 18px; }
+  .ddim span { font-size: 11.5px; color: var(--ink-mid); }
+  .dcard h3 { font-size: 13px; font-weight: 700; color: var(--blue-dark); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+  .dcard ul { padding-left: 18px; }
+  .dcard li, .dcard p.txt { font-size: 14px; color: var(--ink-mid); line-height: 1.6; margin-bottom: 4px; }
+  .dactions { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  @media (max-width: 520px) { .ddims { grid-template-columns: repeat(2, 1fr); } .dtop img { width: 84px; height: 64px; } }
   @media (max-width: 520px) { .row { flex-direction: column; align-items: flex-start; } .row .v { text-align: left; } .meter { margin-left: 0; } }
 </style>
 </head>
@@ -382,6 +416,13 @@
       <button class="btn" onclick="signOut()">Sign out</button>
     </div>
 
+    <div class="hist-head"><h2>My critiques</h2><span id="hist-count"></span></div>
+    <div id="hist" class="hist"></div>
+    <div id="hist-empty" class="panel hist-empty" hidden>
+      <p>No critiques yet. Your history will appear here, with a small thumbnail of each photo.</p>
+      <a class="btn primary" href="/">Critique a photo</a>
+    </div>
+
     <div class="panel danger-zone">
       <div class="row" style="border:none"><div class="k">Delete my account</div></div>
       <p>This permanently deletes your account, all your critiques and every thumbnail we hold. It cannot be undone.</p>
@@ -417,8 +458,10 @@
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="/js/auth.js"></script>
+<div id="detail" class="dov" hidden role="dialog" aria-modal="true" aria-label="Critique"></div>
+
 <script>
   const $ = (id) => document.getElementById(id);
   const fmt = (iso) => { try { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return ''; } };
@@ -491,6 +534,96 @@
     await SE.signOut();
     show('deleted');
   }
+
+  // ── My critiques (read straight from Supabase; row-level security limits it to the user's own rows) ──
+  const DIMS = [['composition','Composition'],['light','Light'],['sharpness','Sharpness'],['color','Colour'],['storytelling','Storytelling'],['originality','Originality']];
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const scoreColor = (s) => s >= 8 ? '#2D6A2D' : s >= 6 ? '#1C6E6A' : s >= 4 ? '#8A5A00' : '#8A1F1F';
+  const scoreLabel = (s) => s >= 10 ? 'World-class' : s >= 8 ? 'Excellent' : s === 7 ? 'Strong' : s === 6 ? 'Competent' : s >= 4 ? 'Needs work' : 'Snapshot';
+  const fmtShort = (iso) => { try { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+  let critiques = [], thumbUrls = {}, histLoadedFor = null;
+
+  async function loadHistory(force) {
+    if (!SE.session || !SE.client) return;
+    const uid = SE.session.user.id;
+    if (!force && histLoadedFor === uid) return;
+    histLoadedFor = uid;
+    const { data, error } = await SE.client.from('critiques')
+      .select('id, created_at, genre, title, score_overall, scores_dimensions, thumbnail_path, critique_text')
+      .order('created_at', { ascending: false }).limit(100);
+    if (error) { console.error('history', error.message); histLoadedFor = null; return; }
+    critiques = data || [];
+    const paths = critiques.map((c) => c.thumbnail_path).filter(Boolean);
+    thumbUrls = {};
+    if (paths.length) {
+      const { data: urls } = await SE.client.storage.from('thumbnails').createSignedUrls(paths, 3600);
+      (urls || []).forEach((u) => { if (u.signedUrl) thumbUrls[u.path] = u.signedUrl; });
+    }
+    renderHistory();
+  }
+
+  function renderHistory() {
+    $('hist-empty').hidden = critiques.length > 0;
+    $('hist-count').textContent = critiques.length ? `${critiques.length} critique${critiques.length > 1 ? 's' : ''}` : '';
+    $('hist').innerHTML = critiques.map((c, i) => {
+      const url = c.thumbnail_path && thumbUrls[c.thumbnail_path];
+      return `<button class="hcard" type="button" onclick="openCritique(${i})" aria-label="Open critique, score ${c.score_overall} out of 10">
+        <div class="hthumb">${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : 'No thumbnail'}
+          <span class="hscore" style="background:${scoreColor(c.score_overall)}">${c.score_overall}</span></div>
+        <div class="hmeta"><div class="hgenre">${esc(c.genre || 'Photo')}</div><div class="hdate">${esc(fmtShort(c.created_at))}${c.title ? ' · ' + esc(c.title) : ''}</div></div>
+      </button>`;
+    }).join('');
+  }
+
+  function openCritique(i) {
+    const c = critiques[i];
+    if (!c) return;
+    let r = {};
+    try { r = JSON.parse(c.critique_text); } catch (e) {}
+    const dims = c.scores_dimensions || r.dimensions || {};
+    const url = c.thumbnail_path && thumbUrls[c.thumbnail_path];
+    const col = scoreColor(c.score_overall);
+    const list = (a) => Array.isArray(a) && a.length ? `<ul>${a.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+    const d = $('detail');
+    d.innerHTML = `<div class="dcard">
+      <button class="dclose" type="button" aria-label="Close" onclick="closeCritique()">×</button>
+      <div class="dtop">${url ? `<img src="${esc(url)}" alt="">` : ''}
+        <div><div class="dnum" style="color:${col}">${c.score_overall}<span style="font-size:16px;color:var(--ink-light);font-weight:500">/10</span></div>
+        <div class="dlabel" style="color:${col}">${scoreLabel(c.score_overall)}</div>
+        <div class="dsub">${esc(c.genre || '')} · ${esc(fmtShort(c.created_at))}${c.title ? ' · ' + esc(c.title) : ''}</div></div>
+      </div>
+      ${r.overall_summary ? `<p class="dsum">${esc(r.overall_summary)}</p>` : ''}
+      <div class="ddims">${DIMS.map(([k, l]) => dims[k] != null ? `<div class="ddim"><b style="color:${scoreColor(dims[k])}">${dims[k]}</b><span>${l}</span></div>` : '').join('')}</div>
+      ${r.what_works ? `<h3>What works</h3>${list(r.what_works)}` : ''}
+      ${r.what_to_improve ? `<h3>What to improve</h3>${list(r.what_to_improve)}` : ''}
+      ${r.one_thing_to_try ? `<h3>One thing to try</h3><p class="txt">${esc(r.one_thing_to_try)}</p>` : ''}
+      <div class="dactions">
+        <button class="btn" type="button" onclick="closeCritique()">Close</button>
+        <button class="btn danger" type="button" id="del-crit" onclick="deleteCritique(${i})">Delete this critique</button>
+      </div>
+    </div>`;
+    d.hidden = false;
+    document.body.style.overflow = 'hidden';
+    try { if (window.posthog) window.posthog.capture('history_critique_opened'); } catch (e) {}
+  }
+
+  function closeCritique() { $('detail').hidden = true; document.body.style.overflow = ''; }
+  $('detail').addEventListener('click', (e) => { if (e.target.id === 'detail') closeCritique(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('detail').hidden) closeCritique(); });
+
+  async function deleteCritique(i) {
+    const c = critiques[i];
+    const btn = $('del-crit');
+    if (btn.dataset.armed !== '1') { btn.dataset.armed = '1'; btn.textContent = 'Click again to delete permanently'; return; }
+    btn.disabled = true;
+    const r = await SE.api('delete-critique', { method: 'POST', body: { critique_id: c.id } });
+    if (!r.ok) { btn.disabled = false; btn.textContent = 'Could not delete. Try again'; return; }
+    critiques.splice(i, 1);
+    closeCritique();
+    renderHistory();
+  }
+
+  SE.onChange(() => { if (SE.session && SE.profile) loadHistory(); });
 
   function toggleMenu(btn) {
     const menu = $('mobile-menu'); const open = btn.getAttribute('aria-expanded') === 'true';
