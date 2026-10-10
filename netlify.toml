@@ -7,3 +7,22 @@
 
 [context.production.environment]
   NODE_VERSION = "20"
+
+# /account → account.html (also used as Stripe return URL in Phase 2)
+[[redirects]]
+  from = "/account"
+  to = "/account.html"
+  status = 200
+
+# Never publish server-only sources or the SQL as static files
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/supabase/*"
+  to = "/404"
+  status = 404
+  force = true

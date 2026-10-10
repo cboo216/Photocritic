@@ -181,7 +181,7 @@
   <main>
     <div class="doc-head">
       <h1>Privacy Policy</h1>
-      <div class="updated">Last updated: 12 September 2026</div>
+      <div class="updated">Last updated: 10 October 2026</div>
       <p class="lede">This policy explains what personal data Second Eye collects when you use <a href="https://getsecondeye.com">getsecondeye.com</a>, why we collect it, who we share it with, and the rights you have over it. We keep data collection to the minimum needed to give you a useful photo critique.</p>
     </div>
 
@@ -192,30 +192,44 @@
     <h2><span class="num">2</span>What we collect</h2>
     <table class="data">
       <tr><th>Data</th><th>When</th><th>Why</th></tr>
-      <tr><td>The photo you upload</td><td>When you request a critique</td><td>To analyse the image and generate your feedback</td></tr>
-      <tr><td>Image metadata (EXIF), which can include camera settings and, in some cases, GPS location</td><td>Read from your photo when you upload it</td><td>To give the critique useful technical context</td></tr>
+      <tr><td>Your email address</td><td>When you create an account or sign in</td><td>To create your account and send you sign-in links</td></tr>
+      <tr><td>Your pseudo and your email preference</td><td>When you set up or edit your account</td><td>To run your account and respect your choice about marketing emails</td></tr>
+      <tr><td>Your plan and usage (number of critiques used this period)</td><td>As you use the service</td><td>To apply your monthly allowance</td></tr>
+      <tr><td>The photo you upload</td><td>When you request a critique</td><td>To analyse the image and generate your feedback. Never stored by us (see section 3)</td></tr>
+      <tr><td>Image metadata (EXIF): camera settings such as aperture, shutter speed, ISO and focal length</td><td>Read in your browser when you upload a photo</td><td>To give the critique useful technical context. GPS location is never sent or stored</td></tr>
       <tr><td>Optional details you type (photo type, shooting conditions, creative intent)</td><td>When you request a critique</td><td>To tailor the feedback</td></tr>
-      <tr><td>Your first name and email address</td><td>When you choose to unlock the PDF export</td><td>To deliver the export and, with your consent, send occasional tips</td></tr>
+      <tr><td>Your critiques: a small thumbnail, the critique text, scores, photo type and title (your file name)</td><td>After each critique</td><td>To provide your critique history</td></tr>
       <tr><td>Basic usage and device data (pages viewed, actions taken, approximate region, browser type)</td><td>While you use the site</td><td>To understand and improve the product</td></tr>
       <tr><td>Server logs (including IP address)</td><td>Automatically, on every request</td><td>Security and reliability</td></tr>
     </table>
     <p>We do <strong>not</strong> ask for, or intentionally collect, any special-category data (such as health, political or biometric information). Please avoid uploading photos whose main purpose is to reveal such information about identifiable people.</p>
 
-    <h2><span class="num">3</span>Your photos: what happens to them</h2>
-    <p>When you upload a photo, it is resized in your browser and sent to our AI processing provider solely to generate your critique. <strong>We do not save your uploaded photos on our own systems after the critique is produced</strong>, and we do not use your photos to train our own models. Your photo is processed by our provider (see section 5) under their terms; we recommend not uploading images you would not be comfortable sharing with a third-party processing service.</p>
+    <h2 id="photos"><span class="num">3</span>Photos and critiques</h2>
+    <ul>
+      <li><strong>What we process:</strong> your photo, resized in your browser, analysed in memory and sent to Anthropic (our AI provider) to generate the critique. It is <strong>never stored by us</strong>: not in our database, not in our file storage, not in our logs.</li>
+      <li><strong>What we keep:</strong> a thumbnail (256 px maximum on the longest side, WebP or JPEG, re-encoded in your browser so that all metadata, including GPS location, is removed), the critique text, the scores, the photo type and the title, linked to your account.</li>
+      <li><strong>Why:</strong> to provide your critique history. The legal basis is the performance of our contract with you (Art. 6(1)(b) GDPR).</li>
+      <li><strong>How long:</strong> until you delete the critique or your account. Deletion is immediate and includes the thumbnail.</li>
+      <li><strong>Who can see it:</strong> only you. Thumbnails sit in a private storage area that only your account can read. They are never used for analytics or to train AI models.</li>
+      <li><strong>Our AI provider:</strong> Anthropic processes your photo under its commercial terms, which do not allow it to train its models on your data. We recommend not uploading images you would not be comfortable sharing with a third-party processing service.</li>
+    </ul>
 
     <h2><span class="num">4</span>Why we're allowed to use your data (legal bases)</h2>
     <ul>
-      <li><strong>To provide the critique you ask for</strong> — the processing is necessary to deliver the service you actively request.</li>
-      <li><strong>To send you photography tips and product news by email</strong> — your <strong>consent</strong>, given via the tick-box when you unlock the PDF. You can withdraw it at any time (see section 8).</li>
-      <li><strong>To measure and improve the site, and keep it secure</strong> — our legitimate interest in running and improving a reliable service, balanced against your privacy.</li>
+      <li><strong>To run your account and provide the critiques and history you ask for</strong>: performance of our contract with you (Art. 6(1)(b) GDPR).</li>
+      <li><strong>To send you photography tips and product news by email</strong>: your <strong>consent</strong>, given by ticking the box when you create your account or by switching it on in your account page. It is off by default, and you can withdraw it at any time.</li>
+      <li><strong>To measure and improve the site, and keep it secure</strong>: our legitimate interest in running and improving a reliable service, balanced against your privacy.</li>
     </ul>
 
     <h2><span class="num">5</span>Who we share it with</h2>
     <p>We do not sell your data. We share it only with the service providers ("processors") that make Second Eye work:</p>
     <ul>
-      <li><strong>Netlify</strong> — hosts the website, runs the analysis function, stores the name and email you submit through the unlock form.</li>
-      <li><strong>Anthropic</strong> — provides the AI model that analyses your photo and returns the critique.</li>
+      <li><strong>Supabase</strong> (hosted in the EU): stores your account, your critiques and their thumbnails, and handles sign-in.</li>
+      <li><strong>Netlify</strong>: hosts the website and runs the functions that process your requests.</li>
+      <li><strong>Anthropic</strong>: provides the AI model that analyses your photo and returns the critique.</li>
+      <li><strong>Brevo</strong>: sends sign-in emails and, if you opted in, our newsletter.</li>
+      <li><strong>PostHog</strong> (EU region): product analytics.</li>
+      <li><strong>Stripe</strong>: will process payments once paid plans open. We never see or store your card details.</li>
     </ul>
     <p>Each provider processes your data only on our instructions and under a data-processing agreement.</p>
 
@@ -224,18 +238,19 @@
 
     <h2><span class="num">7</span>How long we keep it</h2>
     <ul>
-      <li><strong>Uploaded photos:</strong> not retained by us once the critique is generated.</li>
-      <li><strong>Name and email:</strong> kept until you unsubscribe or ask us to delete them.</li>
+      <li><strong>Uploaded photos:</strong> never stored by us; held in memory only while the critique is generated.</li>
+      <li><strong>Account data, critiques and thumbnails:</strong> until you delete them or delete your account.</li>
+      <li><strong>Marketing emails:</strong> until you unsubscribe or switch the option off in your account.</li>
       <li><strong>Analytics data:</strong> kept for 24 months, then deleted or anonymised.</li>
       <li><strong>Server logs:</strong> kept for a short period for security, then deleted.</li>
     </ul>
 
     <h2><span class="num">8</span>Your rights</h2>
     <p>Under the GDPR you have the right to: access the data we hold about you; correct it; delete it; restrict or object to its use; receive it in a portable format; and withdraw any consent you gave, at any time, without affecting processing carried out before withdrawal.</p>
-    <p>To unsubscribe from emails, use the link in any email we send. To exercise any other right, email us at <strong>hello@getsecondeye.com</strong>. If you are unhappy with how we handle your data, you can lodge a complaint with the French data-protection authority, the <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.</p>
+    <p>You can change your email preference and <strong>delete your account yourself</strong>, at any time, from your account page. Deleting your account immediately erases your profile, your critiques and all your thumbnails. To unsubscribe from emails, you can also use the link in any email we send. To exercise any other right, email us at <strong>hello@getsecondeye.com</strong>. If you are unhappy with how we handle your data, you can lodge a complaint with the French data-protection authority, the <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a>.</p>
 
     <h2><span class="num">9</span>Local storage &amp; cookies</h2>
-    <p>To make the site work, we store two small values in your browser: one remembering that you have unlocked the PDF export, and one counting how many critiques you have run. These stay on your device and are not used to track you across other websites. Our analytics provider may set limited storage to measure usage; where required, we will ask for your consent first.</p>
+    <p>To keep you signed in, we store a session token in your browser's local storage. It is strictly necessary for your account to work and is removed when you sign out. Our analytics provider may set limited storage to measure usage; where required, we will ask for your consent first. Nothing we store is used to track you across other websites.</p>
 
     <h2><span class="num">10</span>Children</h2>
     <p>Second Eye is not directed at children. If you are under 15, please do not use the service or submit any personal data without the consent of a parent or guardian.</p>

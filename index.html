@@ -1113,6 +1113,17 @@
       color: var(--ink-mid);
     }
 
+    /* ── ACCOUNT: privacy note + quota line + quota wall ── */
+    .privacy-note { font-size: 11.5px; line-height: 1.5; color: var(--ink-light); margin-top: 10px; }
+    .privacy-note a { color: var(--blue-mid); }
+    .quota-line { font-size: 12.5px; color: var(--ink-mid); text-align: center; margin-top: 10px; }
+    .quota-line.empty { color: var(--red); }
+    .quota-wall { max-width: 520px; margin: 40px auto; text-align: center; background: var(--blue-pale); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px 26px; }
+    .quota-wall h2 { font-size: 20px; color: var(--blue-dark); margin-bottom: 10px; }
+    .quota-wall p { font-size: 14px; color: var(--ink-mid); line-height: 1.6; margin-bottom: 20px; }
+    .quota-wall .btn-submit { display: inline-block; width: auto; padding: 13px 28px; text-decoration: none; }
+    .footer-note { font-size: 11px; color: var(--ink-light); text-align: center; max-width: 640px; margin: 0 auto 6px; line-height: 1.5; }
+
     /* ── UTILITIES ── */
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
@@ -1133,7 +1144,7 @@
 
       /* Hide everything that isn't the critique */
       header, footer, #form-view, .seo-content, .result-actions,
-      #email-gate, form[name="critique-signup"] { display: none !important; }
+      .se-ov { display: none !important; }
 
       body { background: #fff; }
       main { max-width: 100%; margin: 0; padding: 0; }
@@ -1157,21 +1168,6 @@
       }
     }
 
-    /* ── EMAIL GATE MODAL ── */
-    .eg-overlay { position: fixed; inset: 0; background: rgba(26,30,46,0.55); align-items: center; justify-content: center; padding: 20px; z-index: 1000; display: none; }
-    .eg-overlay:not([hidden]) { display: flex; }
-    .eg-card { background: var(--white); border-radius: var(--radius-lg); padding: 28px 26px; max-width: 380px; width: 100%; position: relative; font-family: 'Montserrat', sans-serif; box-shadow: 0 20px 50px rgba(26,30,46,0.25); }
-    .eg-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 22px; color: var(--ink-light); cursor: pointer; line-height: 1; }
-    .eg-title { font-size: 18px; color: var(--ink); margin: 0 0 8px; font-weight: 700; }
-    .eg-sub { font-size: 13px; color: var(--ink-mid); margin: 0 0 18px; line-height: 1.5; }
-    .eg-input { width: 100%; box-sizing: border-box; padding: 11px 13px; margin-bottom: 10px; border: 1px solid var(--border-mid); border-radius: var(--radius-md); font-size: 14px; font-family: inherit; color: var(--ink); }
-    .eg-input:focus { outline: none; border-color: var(--blue); }
-    .eg-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-mid); margin-bottom: 14px; line-height: 1.45; cursor: pointer; }
-    .eg-consent input { margin-top: 2px; flex-shrink: 0; }
-    .eg-consent a { color: var(--blue-mid); }
-    .eg-error { color: var(--red); font-size: 12px; margin-bottom: 10px; }
-    .eg-btn { width: 100%; background: var(--blue); color: var(--white); border: none; border-radius: var(--radius-md); padding: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
-    .eg-btn:hover { background: var(--blue-dark); }
   </style>
   <!-- PDF export now uses the browser's native print engine — no library needed -->
 <script>
@@ -1185,12 +1181,6 @@
 </head>
 <body>
 
-<!-- Hidden form so Netlify's build-time crawler registers it for JS submissions -->
-<form name="critique-signup" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input type="text" name="name" />
-  <input type="email" name="email" />
-  <input type="checkbox" name="consent" />
-</form>
 
 <header>
   <a class="logo-wrap" href="/">
@@ -1198,14 +1188,16 @@
   </a>
   <nav class="header-nav" aria-label="Primary">
     <a class="header-link" href="/pricing.html">Pricing</a>
-    <a class="header-link header-cta" href="#" onclick="showEmailGate('header'); return false;">Sign up</a>
+    <a class="header-link" href="/account" data-auth="in" hidden>My account</a>
+    <a class="header-link header-cta" href="/?join=1" data-auth="out" onclick="SE.openSignIn('header'); return false;">Sign up</a>
   </nav>
   <button class="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" onclick="toggleMenu(this)">
     <span></span><span></span><span></span>
   </button>
   <div class="mobile-menu" id="mobile-menu">
     <a class="header-link" href="/pricing.html">Pricing</a>
-    <a class="header-link" href="#" onclick="closeMenu(); showEmailGate('header'); return false;">Sign up</a>
+    <a class="header-link" href="/account" data-auth="in" hidden>My account</a>
+    <a class="header-link" href="/?join=1" data-auth="out" onclick="closeMenu(); SE.openSignIn('header'); return false;">Sign up</a>
   </div>
 </header>
 
@@ -1232,6 +1224,7 @@
           <div class="field-error" id="photo-missing" role="alert">Add a photo to get your critique.</div>
           <div class="upload-error" id="upload-error" role="alert"></div>
           <div id="exif-badge-wrap"></div>
+          <p class="privacy-note">We keep a small thumbnail so you can review your history. Your original photo is never stored. <a href="/privacy.html#photos">Privacy policy</a></p>
           <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none" aria-label="Upload photo file">
         </div>
       </div>
@@ -1274,6 +1267,7 @@
         </div>
 
         <button class="btn-submit" id="submit-btn" onclick="submitPhoto()">Get Your Free Critique</button>
+        <p class="quota-line" id="quota-line">Free account: 3 critiques a month. No card needed.</p>
       </div>
     </div>
 
@@ -1454,7 +1448,7 @@
     </details>
     <details>
       <summary>Is Second Eye free?</summary>
-      <p>Yes. You can upload a photo and get a full AI critique and score for free.</p>
+      <p>Yes. Create a free account and get 3 full AI critiques and scores every month. No card needed.</p>
     </details>
     <details>
       <summary>What feedback do I get with my score?</summary>
@@ -1474,95 +1468,16 @@
       <a href="mailto:hello@getsecondeye.com">Contact</a>
     </nav>
   </div>
+  <p class="footer-note">Your original photo is never stored by Second Eye. We keep only a small 256 px thumbnail, stripped of all metadata, so you can review your history.</p>
   <div class="footer-bottom">
     © 2026 Second Eye &nbsp;·&nbsp; <a href="https://getsecondeye.com">getsecondeye.com</a>
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="/js/auth.js"></script>
 <script>
-// ─────────────────────────────────────────────────────────────
-// SYSTEM PROMPT — Photo Critic v2.8
-// ─────────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are a demanding but fair photography mentor. Your role is to evaluate photographs with honesty, precision, and the long-term improvement of the photographer in mind. You do not flatter. You do not soften scores to protect feelings. You believe that honest, specific feedback is the most respectful thing you can offer a photographer who wants to grow.
-
-SCORING SCALE
-Score overall and each dimension from 1 to 10:
-1–3  Snapshot — the camera did most of the work; little evident intent, or intent with weak, generic execution
-4–5  Needs work — clear intent, but real technical or structural problems hold the image back
-6    Competent — technically acceptable, compositionally safe, forgettable
-7    Strong — clear vision, good execution, minor issues
-8–9  Excellent — stands out, memorable, near-professional; a 9 is portfolio quality that very few people reach
-10   World-class — publishable, would stop anyone scrolling
-
-Score labels:
-1–3: Snapshot | 4–5: Needs work | 6: Competent | 7: Strong | 8–9: Excellent | 10: World-class
-
-INPUT FORMAT
-You receive a photograph and optional context:
-- PHOTO_TYPE: genre (landscape, portrait, street, architecture, macro, etc.)
-- CONDITIONS: shooting conditions (handheld, tripod, available light, studio, etc.)
-- INTENT: what the photographer was trying to achieve
-- EXIF: technical metadata if available (aperture, shutter speed, ISO, focal length)
-
-EXIF DATA HANDLING
-EXIF data is optional. When provided: use aperture, shutter speed, ISO, and focal length to contextualise the evaluation — do not penalise technically justified choices. Cross-reference with the CONDITIONS field. If EXIF data contradicts the stated conditions, note the discrepancy diplomatically. If EXIF is not available, evaluate at face value.
-
-EVALUATION RULES BASED ON CONTEXT
-- Never penalise a deliberate creative choice — distinguish clearly between intentional decisions and technical mistakes.
-- Adjust technical expectations to shooting conditions.
-- If creative intent was ambitious but not fully achieved, acknowledge the vision and explain the gap honestly.
-- If the shot is a souvenir/memory, evaluate with warmth but still with honesty.
-
-EVALUATION FRAMEWORK — score each from 1 to 10:
-- COMPOSITION & FRAMING: Rule of thirds, leading lines, balance, negative space, subject placement, horizon, depth.
-- LIGHT & EXPOSURE: Light quality, exposure accuracy, highlight/shadow management, dynamic range.
-- SHARPNESS & TECHNIQUE: Focus accuracy, depth of field, motion blur, camera shake.
-- COLOR & POST-PROCESSING: Color harmony, white balance, saturation, contrast, editing coherence.
-- STORYTELLING & EMOTION: Clear subject and intent, narrative, feeling, would a viewer stop scrolling?
-- ORIGINALITY & CREATIVITY: Fresh perspective, personal vision, avoids or transcends clichés.
-
-STRICT RULES — never violate these:
-- Dimension scores required: Output all six dimension scores every time, without exception.
-- Structural weakness rule: A broken foundation (disconnected subjects, accidental crop, no emotional connection) pulls the overall score down regardless of peripheral strengths.
-- Praise inflation rule: Do not default to finding something to praise in order to soften a low score. If the only thing working is one element the photographer did not consciously control, name it as such. Unearned strengths do not raise the score.
-- Device neutrality rule: The device used does not adjust the scoring floor. A weak image shot on an iPhone scores the same as a weak image shot on a Nikon.
-- Scoring honesty rule: Scores of 1–2 are expected and appropriate for images where no evident photographer decision is present. Do not use 3 as a psychological floor.
-- No decision no credit rule: If the only things working are the result of the camera's automatic systems, the score reflects the photographer's contribution, not the camera's.
-- Symmetry intent rule: When evaluating composition, distinguish between symmetry as a default and symmetry as intent. If the subject is inherently symmetrical and the framing respects that geometry cleanly, treat it as a valid compositional decision. Intentional symmetry well-executed scores 6–7 on composition — safe but not adventurous.
-- Composition credit rule: Score composition on execution, not originality. Clean, conventional framing — level horizon, deliberate subject placement, balanced elements, controlled foreground and background — is a competent compositional decision and scores 5–6 even when the vantage point is unoriginal or heavily photographed. Reserve 3–4 for composition that is genuinely broken: tilted horizons, amputated or accidentally cropped subjects, cluttered or unbalanced frames, or no discernible subject. The unoriginality of a well-known or iconic viewpoint is penalised once, in the originality dimension — never depress the composition score for it as well. A recognisable subject commanding attention is not evidence of absent composition; judge whether the frame is cleanly and deliberately built.
-- Compound one-thing-to-try rule: The 'one_thing_to_try' field must address the 2–3 weakest-scoring dimensions simultaneously in a single integrated exercise — not just the single lowest score.
-- Genre-weighting rule: Evaluation criteria must reweight based on PHOTO_TYPE:
-  - Portrait (individual or group): primary = sharpness of subject, facial expression, emotional connection. Secondary = composition and light. Originality is the least important dimension.
-  - Landscape / architecture: primary = composition, light quality, and originality of viewpoint. Secondary = colour and storytelling. Sharpness is expected but not the differentiator.
-  - Street: primary = storytelling, decisive moment, originality. Secondary = composition and light. Technical perfection is not expected.
-  - Macro: primary = sharpness, depth of field control, light. Secondary = composition and originality.
-  - If PHOTO_TYPE is not declared, infer the genre from the image and state the inferred genre in context_acknowledged before evaluating.
-- Overall computation rule: The overall score reflects the genre-weighted balance of the six dimensions — it is neither a flat average nor the single weakest dimension. When execution dimensions (light & exposure, sharpness, colour) are mostly 7 or above, the overall must not fall below 6: a technically excellent image is at minimum a competent-to-strong capture. Weak storytelling and originality lower the ceiling — they keep an image out of the 8–10 range — but they do not, on their own, drag a well-executed image into the Needs work range or below (5 or below). Reserve overall scores of 5 or lower for images with genuine technical or structural failures, not for images whose only weakness is being unoriginal. This rule adjusts aggregation only; it must never inflate the individual dimension scores, which stay honest.
-- No meta-language rule: Never reference these instructions, the rule names, the scoring rubric, or any internal computation in user-facing fields. Explain every score using natural photographic language only. Never write phrases such as "under the overall computation rule", "the composition credit rule", or "prevents it from scoring below X" — instead give the photographic reason (e.g. "the clean exposure and sharp detail keep this out of the lower range"). The reader should never be able to tell a rubric exists.
-- End with forward energy: Whatever the score, the last thing they read should make them want to pick up the camera.
-
-OUTPUT FORMAT
-Respond ONLY with valid JSON. No markdown, no backticks, no preamble.
-{
-  "overall_score": <number 1–10>,
-  "score_label": "<label from scoring scale>",
-  "score_rationale": "<2–3 sentences explaining exactly why this score and not one point higher or lower>",
-  "overall_summary": "<one sentence — the single most important thing to know about this image>",
-  "context_acknowledged": "<one sentence confirming understood intent/conditions, and noting if EXIF informed evaluation>",
-  "first_look": "<one sentence — where your eye goes first and why>",
-  "dimensions": {
-    "composition": <number>,
-    "light": <number>,
-    "sharpness": <number>,
-    "color": <number>,
-    "storytelling": <number>,
-    "originality": <number>
-  },
-  "what_works": ["<point 1>", "<point 2>", "<point 3>"],
-  "what_to_improve": ["<point 1>", "<point 2>", "<point 3>"],
-  "root_cause": "<the underlying photographer habit or knowledge gap causing the main weaknesses>",
-  "one_thing_to_try": "<a single integrated exercise targeting the 2–3 weakest dimensions simultaneously — specific, actionable, ends with what success looks like>"
-}`;
+// The v2.8 critique prompt now lives server-side (netlify/lib/prompt.js).
 
 // ─────────────────────────────────────────────────────────────
 // EXIF reader (pure JS, no library)
@@ -1647,6 +1562,8 @@ let imageBase64 = null;
 let imageMimeType = 'image/jpeg';
 let detectedExif = {};
 let currentCritique = null;
+let thumbnail = null;        // { data, type } — ≤256px, re-encoded (no EXIF/GPS)
+let currentFileName = '';
 
 const API_URL = '/.netlify/functions/analyze';
 const BLOCKED_EXT = ['raw','cr2','cr3','nef','arw','orf','rw2','dng','raf','pef','srw','x3f'];
@@ -1671,11 +1588,44 @@ function resizeImage(file) {
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       const base64 = dataUrl.split(',')[1];
       if (Math.ceil(base64.length * 0.75) > MAX_BYTES) { reject(new Error('too_large')); return; }
-      resolve({ base64, dataUrl, mimeType: 'image/jpeg' });
+      makeThumbnail(img).then(thumb => resolve({ base64, dataUrl, mimeType: 'image/jpeg', thumb }));
     };
     img.onerror = () => reject(new Error('load_failed'));
     img.src = url;
   });
+}
+
+// Thumbnail for the history: max 256px on the longest side, re-encoded through a
+// canvas, which drops every EXIF/GPS tag. WebP where the browser supports it,
+// JPEG otherwise (Safari cannot encode WebP). Never blocks the critique.
+const THUMB_PX = 256;
+const THUMB_MAX_BYTES = 50 * 1024;
+function canvasToBlob(canvas, type, q) {
+  return new Promise(res => canvas.toBlob(b => res(b), type, q));
+}
+function blobToBase64(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+async function makeThumbnail(img) {
+  try {
+    const scale = Math.min(1, THUMB_PX / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+    const w = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+    const h = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    for (const q of [0.8, 0.6, 0.4]) {
+      let blob = await canvasToBlob(c, 'image/webp', q);
+      if (!blob || blob.type !== 'image/webp') blob = await canvasToBlob(c, 'image/jpeg', q);
+      if (blob && blob.size <= THUMB_MAX_BYTES) return { data: await blobToBase64(blob), type: blob.type };
+    }
+  } catch (e) {}
+  return null;
 }
 
 async function processFile(file) {
@@ -1705,9 +1655,11 @@ async function processFile(file) {
   bufReader.readAsArrayBuffer(file);
   const zone = document.getElementById('upload-zone');
   try {
-    const { base64, dataUrl, mimeType } = await resizeImage(file);
+    const { base64, dataUrl, mimeType, thumb } = await resizeImage(file);
     imageBase64 = base64;
     imageMimeType = mimeType;
+    thumbnail = thumb;
+    currentFileName = file.name.replace(/\.[^.]+$/, '').slice(0, 120);
     zone.classList.add('has-image');
     zone.innerHTML = `<img src="${dataUrl}" alt="Your uploaded photo">`;
     checkReady();
@@ -1785,9 +1737,15 @@ async function submitPhoto() {
     try { track('submit_blocked', { missing_photo: missingPhoto, missing_type: missingType }); } catch(e){}
     return;
   }
-  const conditions = document.getElementById('conditions').value.trim() || 'not specified';
-  const intent = document.getElementById('intent').value.trim() || 'not specified';
-  const exifString = exifToString(detectedExif) || 'not available';
+
+  // An account is required: sign-in link, then pseudo on first login
+  if (!(await SE.requireAccount('critique'))) { track('submit_needs_account'); return; }
+  const q = SE.profile && SE.profile.quota;
+  if (q && q.remaining <= 0) { showQuotaWall({ plan: SE.profile.plan, limit: q.limit, period_end: q.period_end }); return; }
+
+  const conditions = document.getElementById('conditions').value.trim();
+  const intent = document.getElementById('intent').value.trim();
+  const exifString = exifToString(detectedExif) || '';
 
   document.getElementById('form-view').style.display = 'none';
   const resultView = document.getElementById('result-view');
@@ -1798,54 +1756,83 @@ async function submitPhoto() {
       <div class="loading-text">Analysing your photo…</div>
     </div>`;
 
-const userContent = [
-  {
-    type: 'text',
-    text: `Photo Type: ${photoType}\nConditions: ${conditions}\nIntent: ${intent}\nEXIF: ${exifString}\n\nPlease evaluate this photograph.`
-  },
-  {
-    type: 'image',
-    source: { type: 'base64', media_type: imageMimeType, data: imageBase64 }
-  }
-];
-
-  try {
-    const response = await fetch(`${API_URL}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userContent }]
-      })
-    });
-    const data = await response.json();
-    if (!response.ok || !data.content) {
-      throw new Error(data && data.error && data.error.message ? data.error.message : `HTTP ${response.status}`);
+  const r = await SE.api('analyze', {
+    method: 'POST',
+    body: {
+      photoType, conditions, intent, exif: exifString, title: currentFileName,
+      image: { media_type: imageMimeType, data: imageBase64 },
+      thumbnail
     }
-    const text = data.content.map(i => i.text || '').join('');
-    const clean = text.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(clean);
-    renderResult(result, formatExif(detectedExif));
-    try {
-      const n = parseInt(localStorage.getItem(EG_COUNT_KEY) || '0', 10) + 1;
-      localStorage.setItem(EG_COUNT_KEY, n);
-      track('critique_completed', { count: n });
-      if (n === 3 && !hasLead() && !postCritiqueGateShown) {
-        postCritiqueGateShown = true;
-        showEmailGate('post_critique');
-      }
-    } catch(e){}
-  } catch(err) {
-    console.error('Analyze failed:', err);
-    resultView.innerHTML = `
-      <div class="loading-state">
-        <div class="loading-text">Error: ${err.message}</div>
-      </div>
-      <button class="btn-reset" onclick="resetForm()">Try again</button>`;
+  });
+
+  if (r.ok && r.data && r.data.result) {
+    renderResult(r.data.result, formatExif(detectedExif));
+    if (SE.profile) { SE.profile.quota = Object.assign({}, SE.profile.quota, r.data.quota); updateQuotaLine(); }
+    track('critique_completed', { plan: r.data.quota && r.data.quota.plan, remaining: r.data.quota && r.data.quota.remaining });
+    return;
+  }
+
+  const err = (r.data && r.data.error) || '';
+  if (r.status === 402) { showQuotaWall(r.data); track('quota_exceeded', { plan: r.data.plan }); SE.refreshProfile(); return; }
+  if (r.status === 401) { resetForm(true); SE.openSignIn('critique', 'Your session has expired. Please sign in again.'); return; }
+  const msg = r.status === 503 || err === 'ai_busy'
+    ? 'Our AI is very busy right now. Your critique was not counted. Please try again in a minute.'
+    : err === 'invalid_image'
+      ? 'This image could not be read. Please try another file.'
+      : 'Something went wrong and your critique was not counted. Please try again.';
+  console.error('Analyze failed:', r.status, err);
+  track('critique_failed', { status: r.status, error: err });
+  resultView.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-text">${msg}</div>
+    </div>
+    <button class="btn-reset" onclick="resetForm(true)">Try again</button>`;
+}
+
+function formatDate(iso) {
+  try { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }); } catch (e) { return ''; }
+}
+
+function showQuotaWall(info) {
+  const isPro = info && info.plan === 'pro';
+  const when = info && info.period_end ? ` Your allowance renews on ${formatDate(info.period_end)}.` : '';
+  document.getElementById('form-view').style.display = 'none';
+  const rv = document.getElementById('result-view');
+  rv.style.display = 'block';
+  rv.innerHTML = `
+    <div class="quota-wall">
+      <h2>You've used your ${info && info.limit ? info.limit + ' ' : ''}critiques for this month</h2>
+      <p>${isPro
+        ? 'You have reached the Pro fair-use limit.' + when + ' Need more? Write to us at hello@getsecondeye.com.'
+        : 'Go Pro for up to 50 critiques a month, PDF reports and your progress over time.' + when}</p>
+      ${isPro ? '' : '<a class="btn-submit" href="/pricing.html" onclick="track(\'quota_upgrade_clicked\')">See Pro</a>'}
+      <div><button class="btn-reset" onclick="resetForm(true)">Back</button></div>
+    </div>`;
+}
+
+function updateQuotaLine() {
+  const el = document.getElementById('quota-line');
+  if (!el) return;
+  const p = SE.profile;
+  el.classList.remove('empty');
+  if (!SE.session || !p || !p.quota) {
+    el.textContent = 'Free account: 3 critiques a month. No card needed.';
+    return;
+  }
+  const q = p.quota;
+  if (q.remaining <= 0) {
+    el.classList.add('empty');
+    el.textContent = `No critiques left this month${q.period_end ? ' · renews ' + formatDate(q.period_end) : ''}`;
+  } else {
+    el.textContent = `${q.remaining} of ${q.limit} critique${q.limit > 1 ? 's' : ''} left this month`;
   }
 }
+
+function setSubmitLabel() {
+  const btn = document.getElementById('submit-btn');
+  if (btn) btn.textContent = SE.session ? 'Get My Critique' : 'Get Your Free Critique';
+}
+SE.onChange(() => { updateQuotaLine(); setSubmitLabel(); });
 
 // Rating scale (single source of truth for labels shown to users)
 // 1–3 Snapshot · 4–5 Needs work · 6 Competent · 7 Strong · 8–9 Excellent · 10 World-class
@@ -1978,8 +1965,16 @@ function printCritique() {
   window.print();
 }
 
-function resetForm() {
+// keepPhoto = true: back to the form with the same photo and settings (retry / quota wall)
+function resetForm(keepPhoto) {
+  if (keepPhoto === true && imageBase64) {
+    document.getElementById('form-view').style.display = 'block';
+    document.getElementById('result-view').style.display = 'none';
+    return;
+  }
   imageBase64 = null;
+  thumbnail = null;
+  currentFileName = '';
   imageMimeType = 'image/jpeg';
   detectedExif = {};
   currentCritique = null;
@@ -2001,37 +1996,7 @@ function resetForm() {
   document.getElementById('result-view').style.display = 'none';
 }
 
-/* ── EMAIL GATE / SIGN-UP MODAL + ANALYTICS ── */
-const EG_KEY = 'se_lead';
-const EG_COUNT_KEY = 'se_critiques';
-const SUBSCRIBE_URL = '/.netlify/functions/subscribe';
-const CONSENT_TEXT = "I agree to receive occasional emails from Second Eye and accept the privacy policy. Unsubscribe anytime.";
-
-const EG_COPY = {
-  header: {
-    title: 'Join the community',
-    sub: 'Create your free account to start getting honest critiques. You can pick a plan later, once you see how you use it.',
-    button: 'Register me',
-    success: "You're in — welcome to the Second Eye community."
-  },
-  post_critique: {
-    title: "That's your 3 free critiques",
-    sub: 'Create your free account to carry on — then pick the plan that fits how you shoot.',
-    button: 'Create free account',
-    success: "You're all set — taking you to the plans…"
-  },
-  pdf_gate: {
-    title: 'Download your critique as a PDF',
-    sub: 'Create your free account, then choose a plan — PDF export comes with Pro and the Critique Pack.',
-    button: 'Create free account',
-    success: "You're all set — taking you to the plans…"
-  }
-};
-
-let egSource = 'pdf_gate';
-let postCritiqueGateShown = false;
-
-// Points at PostHog if you've installed it; harmless no-op if not.
+/* ── ANALYTICS ── */
 
 // ── Example critiques (tabs) ──
 function showExample(id) {
@@ -2060,103 +2025,14 @@ document.addEventListener('toggle', e => {
 function track(event, props) {
   try { if (window.posthog) window.posthog.capture(event, props || {}); } catch(e){}
 }
-function hasLead() { try { return !!localStorage.getItem(EG_KEY); } catch(e){ return false; } }
-
-// Replaces the direct print call on the button.
+// PDF export is a Pro feature (Phase 2 wires the payment).
 function requestPdf() {
   if (!currentCritique) return;
-  track('pdf_click');
-  // PDF export is a paid feature. No plan system yet, so route everyone to register / choose a plan.
-  // (Later: if the user has an active paid plan → window.print(); return;)
-  if (hasLead()) { window.location.href = '/pricing.html'; return; }
-  showEmailGate('pdf_gate');
-}
-
-function showEmailGate(source) {
-  egSource = source;
-  const copy = EG_COPY[source];
-  document.getElementById('eg-title').textContent = copy.title;
-  document.getElementById('eg-sub').textContent = copy.sub;
-  document.getElementById('eg-submit-btn').textContent = copy.button;
-  document.getElementById('eg-name').value = '';
-  document.getElementById('eg-email').value = '';
-  document.getElementById('eg-consent').checked = false;
-  document.getElementById('eg-error').hidden = true;
-  document.getElementById('eg-submit-btn').disabled = false;
-  document.getElementById('eg-form-fields').hidden = false;
-  document.getElementById('eg-success').hidden = true;
-  document.getElementById('email-gate').hidden = false;
-  track('email_gate_shown', { source });
-}
-
-function closeEmailGate() { document.getElementById('email-gate').hidden = true; }
-
-async function submitEmailGate() {
-  const name = document.getElementById('eg-name').value.trim();
-  const email = document.getElementById('eg-email').value.trim();
-  const consent = document.getElementById('eg-consent').checked;
-  const err = document.getElementById('eg-error');
-  err.hidden = true;
-  if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    err.textContent = 'Please enter your name and a valid email.'; err.hidden = false; return;
-  }
-  if (!consent) {
-    err.textContent = 'Please tick the consent box to continue.'; err.hidden = false; return;
-  }
-
-  const btn = document.getElementById('eg-submit-btn');
-  btn.disabled = true;
-  try {
-    const res = await fetch(SUBSCRIBE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, firstName: name, source: egSource, consent: true, consentText: CONSENT_TEXT })
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Something went wrong. Please try again.');
-    }
-  } catch (e) {
-    err.textContent = e.message || 'Something went wrong. Please try again.';
-    err.hidden = false;
-    btn.disabled = false;
-    return;
-  }
-
-  try { localStorage.setItem(EG_KEY, email); } catch(e){}
-  track('email_captured', { source: egSource });
-
-  // Usage walls (out of free critiques, or PDF is paid) → send them to choose a plan.
-  if (egSource === 'post_critique' || egSource === 'pdf_gate') {
-    window.location.href = '/pricing.html';
-    return;
-  }
-  // "Sign up" (header) → registered regardless of plan; confirm and let them stay.
-  document.getElementById('eg-form-fields').hidden = true;
-  document.getElementById('eg-success-text').textContent = EG_COPY[egSource].success;
-  document.getElementById('eg-success').hidden = false;
+  track('pdf_click', { plan: SE.profile && SE.profile.plan });
+  if (SE.profile && SE.profile.plan === 'pro') { printCritique(); return; }
+  window.location.href = '/pricing.html';
 }
 </script>
-
-<!-- ── EMAIL GATE / SIGN-UP MODAL (shared across header, post-critique and PDF-gate surfaces) ── -->
-<div id="email-gate" class="eg-overlay" hidden>
-  <div class="eg-card">
-    <button class="eg-close" onclick="closeEmailGate()" aria-label="Close">×</button>
-    <h3 class="eg-title" id="eg-title">Create your free account</h3>
-    <p class="eg-sub" id="eg-sub">Create your free account to continue.</p>
-    <div id="eg-form-fields">
-      <input id="eg-name" class="eg-input" type="text" placeholder="First name" autocomplete="given-name" />
-      <input id="eg-email" class="eg-input" type="email" placeholder="you@email.com" autocomplete="email" />
-      <label class="eg-consent"><input id="eg-consent" type="checkbox" /><span>I agree to receive occasional emails from Second Eye and accept the <a href="/privacy.html" target="_blank">privacy policy</a>. Unsubscribe anytime.</span></label>
-      <div id="eg-error" class="eg-error" hidden></div>
-      <button class="eg-btn" id="eg-submit-btn" onclick="submitEmailGate()">Create free account</button>
-    </div>
-    <div id="eg-success" hidden>
-      <p class="eg-sub" id="eg-success-text">You're all set.</p>
-      <button class="eg-btn" onclick="closeEmailGate()">Done</button>
-    </div>
-  </div>
-</div>
 
 <script>
   function toggleMenu(btn) {
@@ -2177,13 +2053,6 @@ async function submitEmailGate() {
     const burger = document.querySelector('.burger');
     if (!menu || !burger || !menu.classList.contains('open')) return;
     if (!menu.contains(e.target) && !burger.contains(e.target)) closeMenu();
-  });
-  document.addEventListener('DOMContentLoaded', function() {
-    try {
-      if (new URLSearchParams(location.search).get('join') === '1' && typeof showEmailGate === 'function') {
-        showEmailGate('header');
-      }
-    } catch (e) {}
   });
 </script>
 
