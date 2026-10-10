@@ -140,20 +140,26 @@ export default async (request) => {
 
   // Thumbnail: only after the critique succeeded; a failure never breaks the critique
   let thumbnailSaved = false;
+  let thumbnailError = thumbInput ? null : 'missing';
   if (saved && thumbInput) {
     const t = validateThumbnail(thumbInput);
     if (t.error) {
-      console.warn('analyze: thumbnail rejected', t.error);
+      thumbnailError = t.error;
+      console.warn('analyze: thumbnail rejected', t.error, thumbInput.type);
     } else {
       const path = `${user.id}/${critiqueId}.${t.ext}`;
       try {
-        if (await uploadThumbnail(path, t.bytes, t.contentType)) {
-          const up = await rest(`critiques?id=eq.${critiqueId}`, { method: 'PATCH', prefer: 'return=minimal', body: { thumbnail_path: path } });
-          thumbnailSaved = up.ok;
+        const up = await uploadThumbnail(path, t.bytes, t.contentType);
+        if (up.ok) {
+          const pr = await rest(`critiques?id=eq.${critiqueId}`, { method: 'PATCH', prefer: 'return=minimal', body: { thumbnail_path: path } });
+          thumbnailSaved = pr.ok;
+          if (!pr.ok) { thumbnailError = 'db_update'; console.warn('analyze: thumbnail_path update failed', pr.status); }
         } else {
-          console.warn('analyze: thumbnail upload failed');
+          thumbnailError = 'upload';
+          console.warn('analyze: thumbnail upload failed', up.status, up.detail);
         }
       } catch (err) {
+        thumbnailError = 'upload';
         console.warn('analyze: thumbnail upload error', err.message);
       }
     }
@@ -163,6 +169,7 @@ export default async (request) => {
     result,
     critique_id: saved ? critiqueId : null,
     thumbnail_saved: thumbnailSaved,
+    thumbnail_error: thumbnailError,
     calibration_version: CALIBRATION_VERSION,
     quota: {
       plan: q.data.plan,

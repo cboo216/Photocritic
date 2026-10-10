@@ -63,7 +63,9 @@ export async function uploadThumbnail(path, bytes, contentType) {
     headers: serviceHeaders({ 'Content-Type': contentType, 'x-upsert': 'true' }),
     body: bytes,
   });
-  return res.ok;
+  if (res.ok) return { ok: true };
+  const detail = (await res.text().catch(() => '')).slice(0, 200);
+  return { ok: false, status: res.status, detail };
 }
 
 export async function deleteObjects(paths) {
