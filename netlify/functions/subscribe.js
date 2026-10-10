@@ -1,4 +1,4 @@
-const VALID_SOURCES = ['header', 'pdf_gate', 'post_critique'];
+const VALID_SOURCES = ['header', 'pdf_gate', 'post_critique', 'studio_waitlist'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 function jsonError(message, status) {
