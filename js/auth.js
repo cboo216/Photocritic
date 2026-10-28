@@ -4,9 +4,10 @@
    Exposes window.SE:
      SE.ready            Promise, resolves once the session is known
      SE.session          current Supabase session or null
-     SE.profile          { email, pseudo, plan, marketing_opt_in, quota{...} } or null
+     SE.profile          { email, pseudo, plan, pack_credits, marketing_opt_in, quota{...} } or null
+     SE.config           public config ({ paymentsEnabled, ... }) once loaded
      SE.api(path, opts)  fetch a Netlify function with the user's token
-     SE.openSignIn(ctx)  show the magic-link modal ('header' | 'critique' | 'pdf')
+     SE.openSignIn(ctx)  show the magic-link modal ('header' | 'critique' | 'pdf' | 'checkout')
      SE.requireAccount() resolves true when signed in AND pseudo set
      SE.refreshProfile() re-reads the profile from the server
      SE.signOut()
@@ -15,7 +16,7 @@
 (function () {
   const FN = '/.netlify/functions/';
   const listeners = [];
-  const SE = { session: null, profile: null, client: null, configured: false };
+  const SE = { session: null, profile: null, client: null, configured: false, config: {} };
   window.SE = SE;
 
   const track = (e, p) => { try { if (window.posthog) window.posthog.capture(e, p || {}); } catch (_) {} };
@@ -57,6 +58,7 @@
     header:   { t: 'Sign in or create your account', s: 'Enter your email and we’ll send you a sign-in link. No password needed. New here? This creates your free account (3 critiques a month).' },
     critique: { t: 'Create your free account to get your critique', s: 'Enter your email and we’ll send you a sign-in link. Free accounts get 3 critiques a month. No password, no card.' },
     pdf:      { t: 'Sign in to download your critique', s: 'Enter your email and we’ll send you a sign-in link.' },
+    checkout: { t: 'Sign in to continue', s: 'Your plan is linked to your account. Enter your email and we’ll send you a sign-in link; open it and you’ll come straight back here to finish.' },
   };
 
   function mount() {
@@ -262,6 +264,7 @@
 
     let cfg = null;
     try { cfg = await (await fetch(FN + 'public-config')).json(); } catch (_) {}
+    if (cfg) SE.config = cfg;
     if (!cfg || !cfg.supabaseUrl || !cfg.supabaseAnonKey || !window.supabase) {
       console.warn('Second Eye: accounts not configured');
       return;

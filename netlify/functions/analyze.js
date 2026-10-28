@@ -85,9 +85,11 @@ export default async (request) => {
     return json({ error: 'quota_check_failed' }, 500);
   }
   if (!q.data.allowed) {
-    return json({ error: 'quota_exceeded', plan: q.data.plan, limit: q.data.limit, used: q.data.used, period_end: q.data.period_end }, 402);
+    return json({ error: 'quota_exceeded', plan: q.data.plan, limit: q.data.limit, used: q.data.used, period_end: q.data.period_end, pack_credits: q.data.pack_credits || 0 }, 402);
   }
-  const refund = () => rpc('refund_critique', { p_user_id: user.id }).catch(() => {});
+  // Give back exactly what was consumed: a monthly critique or a pack credit
+  const source = q.data.source === 'pack' ? 'pack' : 'quota';
+  const refund = () => rpc('refund_critique', { p_user_id: user.id, p_source: source }).catch(() => {});
 
   // ── Critique ──
   const userContent = [
@@ -177,6 +179,8 @@ export default async (request) => {
       limit: q.data.limit,
       remaining: Math.max(q.data.limit - q.data.used, 0),
       period_end: q.data.period_end,
+      source,
+      pack_credits: q.data.pack_credits || 0,
     },
   });
 };

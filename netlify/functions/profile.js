@@ -33,6 +33,12 @@ function view(p) {
     marketing_opt_in: p.marketing_opt_in,
     subscription_status: p.subscription_status,
     current_period_end: p.current_period_end,
+    billing_interval: p.billing_interval || null,
+    cancel_at_period_end: !!p.cancel_at_period_end,
+    has_billing_account: !!p.stripe_customer_id,
+    // Lapsed credits show as 0 here; the database clears them at the next critique or purchase
+    pack_credits: p.pack_credits_expire_at && Date.now() >= new Date(p.pack_credits_expire_at).getTime() ? 0 : (p.pack_credits || 0),
+    pack_credits_expire_at: p.pack_credits_expire_at || null,
     created_at: p.created_at,
     quota: {
       used,

@@ -160,7 +160,15 @@
     border: 2px solid var(--blue); box-shadow: 0 12px 32px -12px rgba(43,79,138,0.28);
     position: relative;
   }
-  @media (min-width: 981px) { .card.featured { transform: translateY(-8px); } }
+  /* Cards share 4 row tracks (header · price · CTA · features) so each block lines up across plans */
+  @supports (grid-template-rows: subgrid) {
+    .grid { grid-auto-rows: auto; }
+    .grid > .card { grid-row: span 4; display: grid; grid-template-rows: subgrid; row-gap: 0; }
+    .grid > .card > .c-action, .grid > .card > .c-feats { align-self: start; }
+  }
+  /* Featured card: 2px border, so 1px less padding keeps its content on the same lines */
+  .card.featured { padding: 29px 25px; }
+  @media (min-width: 981px) { .grid .card.featured { padding: 27px 19px; } }
   /* Grid children stretch to the row height only where cards sit side by side */
   @media (min-width: 621px) { .grid { align-items: stretch; } }
   .badge-pop {
@@ -217,6 +225,32 @@
   .wl-done { margin-top: 14px; font-size: 13.5px; color: var(--ink); background: var(--blue-pale); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; }
   .wl-done[hidden] { display: none; }
   .cta:disabled { opacity: 0.6; cursor: progress; transform: none; }
+
+  /* ── Critique Pack (one-off): same card structure, centred under the plans ── */
+  .pack-wrap { max-width: calc((100% - 32px) / 3); margin: 34px auto 22px; scroll-margin-top: 90px; }
+  .pack-intro { text-align: center; font-size: 13px; font-weight: 600; color: var(--ink-mid); margin-bottom: 12px; }
+  .pack .who { min-height: 0; }
+  @media (max-width: 860px) { .pack-wrap { max-width: 460px; } }
+  .pay-note { font-size: 12px; color: var(--ink-mid); text-align: center; min-height: 0; }
+  .pay-note:empty { display: none; }
+
+  /* ── Checkout confirmation modal ── */
+  .co-ov { position: fixed; inset: 0; background: rgba(26,30,46,.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+  .co-ov[hidden] { display: none; }
+  .co-card { background: var(--white); border-radius: 16px; padding: 28px 26px; max-width: 440px; width: 100%; position: relative; box-shadow: 0 20px 50px rgba(26,30,46,.25); }
+  .co-x { position: absolute; top: 10px; right: 14px; background: none; border: none; font-size: 24px; line-height: 1; color: var(--ink-light); cursor: pointer; padding: 4px; }
+  .co-card h3 { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .co-sum { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 0; margin: 10px 0 14px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .co-sum .what { font-size: 14px; color: var(--ink); font-weight: 600; }
+  .co-sum .what span { display: block; font-size: 12px; color: var(--ink-light); font-weight: 400; margin-top: 2px; }
+  .co-sum .amt { font-size: 22px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .co-chk { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--ink-mid); line-height: 1.5; cursor: pointer; margin-bottom: 14px; }
+  .co-chk input { margin-top: 3px; flex-shrink: 0; width: 16px; height: 16px; }
+  .co-err { font-size: 12.5px; color: var(--red, #8A1F1F); margin-bottom: 10px; }
+  .co-err[hidden] { display: none; }
+  .co-card .cta { margin: 0 0 8px; }
+  .co-fine { font-size: 11.5px; color: var(--ink-light); line-height: 1.5; text-align: center; }
+  .co-fine a, .co-chk a { color: var(--blue-mid); }
 
   .feat-head { font-size: 12px; font-weight: 600; color: var(--ink-mid); margin: 22px 0 12px; }
   ul.feats { list-style: none; display: flex; flex-direction: column; gap: 11px; }
@@ -316,12 +350,19 @@
 
     <!-- FREE -->
     <div class="card">
-      <div class="name">Free</div>
-      <div class="who">For photographers testing the water.</div>
-      <div class="price"><span class="amt">0 €</span><span class="per">/ forever</span></div>
-      <div class="price-note">No card, no commitment.</div>
-      <button class="cta primary" id="free-cta" onclick="freeClick()">Create free account</button>
-      <div class="cta-sub">Your first critique in under a minute</div>
+      <div class="c-head">
+        <div class="name">Free</div>
+        <div class="who">For photographers testing the water.</div>
+      </div>
+      <div class="c-price">
+        <div class="price"><span class="amt">0 €</span><span class="per">/ forever</span></div>
+        <div class="price-note">No card, no commitment.</div>
+      </div>
+      <div class="c-action">
+        <button class="cta primary" id="free-cta" onclick="freeClick()">Create free account</button>
+        <div class="cta-sub">Your first critique in under a minute</div>
+      </div>
+      <div class="c-feats">
       <div class="feat-head">What you get</div>
       <ul class="feats">
         <li>3 critiques per month</li>
@@ -329,40 +370,55 @@
         <li>The one change to make next</li>
         <li>Results on screen</li>
       </ul>
+      </div>
     </div>
 
     <!-- PRO -->
     <div class="card featured">
       <div class="badge-pop">Most popular</div>
-      <div class="name">Pro</div>
-      <div class="who">For photographers serious about getting better.</div>
+      <div class="c-head">
+        <div class="name">Pro</div>
+        <div class="who">For photographers serious about getting better.</div>
+      </div>
+      <div class="c-price">
       <div class="price">
-        <span class="amt" id="pro-amt">45 €</span>
+        <span class="amt" id="pro-amt">49 €</span>
         <span class="strike" id="pro-strike" style="display:none"></span>
         <span class="per" id="pro-per">/ year</span>
       </div>
-      <div class="price-note" id="pro-note">≈ 3.75 €/month, billed yearly<br><span class="one-time">Save 9 €</span></div>
-      <button class="cta primary" onclick="planClick('pro', '/#pro')">Go Pro</button>
-      <div class="cta-sub">Cancel anytime</div>
+      <div class="price-note" id="pro-note">Billed yearly · <span class="one-time">Save 9.80 €</span></div>
+      </div>
+      <div class="c-action">
+      <button class="cta primary" id="pro-cta" onclick="buyPro()">Go Pro</button>
+      <div class="cta-sub" id="pro-sub">Cancel anytime</div>
+      <div class="pay-note" id="pro-pay-note" role="status"></div>
+      </div>
+      <div class="c-feats">
       <div class="feat-head">Everything in Free, plus</div>
       <ul class="feats">
         <li>Up to 50 critiques per month</li>
         <li>Downloadable PDF critique report</li>
         <li>Your progress tracked over time</li>
       </ul>
+      </div>
     </div>
 
     <!-- STUDIO — waitlist (fake-door test: measure demand before building) -->
     <div class="card studio" id="studio">
       <div class="badge-soon">Coming soon</div>
-      <div class="name">Studio</div>
-      <div class="who">For prolific shooters working through whole shoots.</div>
+      <div class="c-head">
+        <div class="name">Studio</div>
+        <div class="who">For prolific shooters working through whole shoots.</div>
+      </div>
+      <div class="c-price">
       <div class="price">
         <span class="amt" id="studio-amt">120 €</span>
         <span class="strike" id="studio-strike" style="display:none"></span>
         <span class="per" id="studio-per">/ year</span>
       </div>
-      <div class="price-note" id="studio-note">≈ 10 €/month, billed yearly<br><span class="one-time">· Save 24 €</span></div>
+      <div class="price-note" id="studio-note">Billed yearly · <span class="one-time">Save 24 €</span></div>
+      </div>
+      <div class="c-action">
       <button class="cta ghost" id="studio-cta" onclick="openWaitlist()" aria-expanded="false" aria-controls="studio-wl">Join the waitlist</button>
       <div class="cta-sub" id="studio-sub">We'll email you when it opens</div>
 
@@ -374,38 +430,43 @@
         <button class="cta primary" id="wl-submit" onclick="submitWaitlist()">Save my spot</button>
       </div>
       <div class="wl-done" id="wl-done" role="status" hidden>You're on the list. We'll let you know as soon as Studio opens.</div>
-
+      </div>
+      <div class="c-feats">
       <div class="feat-head">Everything in Pro, plus</div>
       <ul class="feats">
         <li>Up to 300 critiques per month</li>
         <li>Compare up to 5 shots from one shoot — ranked, with why</li>
       </ul>
+      </div>
     </div>
 
-    <!-- PACK — hidden until validated (one-off payments + credit ledger needed)
-    
-    <div class="card">
+
+  </div>
+
+  <!-- CRITIQUE PACK — one-off payment, credits used after the monthly allowance -->
+  <div class="pack-wrap" id="pack">
+    <div class="pack-intro">Prefer to pay as you go?</div>
+    <div class="card pack">
       <div class="name">Critique Pack</div>
-      <div class="who">For occasional shooters — no subscription.</div>
+      <div class="who">For occasional shooters. No subscription.</div>
       <div class="price"><span class="amt">7 €</span><span class="per">/ 12 critiques</span></div>
-      <div class="price-note"><span class="one-time">One-time payment</span> · credits never expire</div>
-      <button class="cta primary" onclick="planClick('pack', '/#pack')">Buy a pack</button>
-      <div class="cta-sub">Pay once, use whenever</div>
+      <div class="price-note"><span class="one-time">One-time payment</span> · valid 12 months</div>
+      <button class="cta primary" id="pack-cta" onclick="buyPack()">Buy a pack</button>
+      <div class="cta-sub">Pay once, use at your pace</div>
+      <div class="pay-note" id="pack-pay-note" role="status"></div>
       <div class="feat-head">What you get</div>
       <ul class="feats">
         <li>12 critiques, used at your pace</li>
-        <li>Score across 6 dimensions, plus an overall</li>
         <li>Downloadable PDF critique report</li>
-        <li>No account subscription</li>
+        <li>Works on top of any plan</li>
       </ul>
     </div>
-    -->
-
   </div>
 
   <div class="trust">
     <span>Cancel anytime</span>
-    <span>Secure payment</span>
+    <span>Secure payment by Stripe</span>
+    <span>Prices include VAT</span>
   </div>
 </main>
 
@@ -430,7 +491,15 @@
   </details>
   <details>
     <summary>What if I reach my monthly limit?</summary>
-    <div class="body">Your allowance renews every month; your account page shows the exact date. Need more before then? Upgrade to Pro for up to 50 critiques a month.</div>
+    <div class="body">Your allowance renews every month; your account page shows the exact date. Need more before then? Upgrade to Pro for up to 50 critiques a month, or buy a Critique Pack: its credits are used only once your monthly critiques are gone.</div>
+  </details>
+  <details>
+    <summary>Pro or Critique Pack: which one is for me?</summary>
+    <div class="body">If you shoot every week, Pro is far better value: up to 50 critiques a month for 4.90 € (or 49 € a year). If you only want a critique now and then, a pack gives you 12 critiques for 7 €, with no subscription, to use within 12 months (each new pack extends your remaining credits). Pro members can also buy a pack to top up beyond 50.</div>
+  </details>
+  <details>
+    <summary>Can I get a refund?</summary>
+    <div class="body">Your critiques are delivered instantly, so when you buy you're asked to confirm that the service starts straight away, which ends the 14-day withdrawal period. If something goes wrong with a critique, it isn't counted. For any problem, write to <a href="mailto:hello@getsecondeye.com">hello@getsecondeye.com</a> and we'll sort it out. Full detail in our <a href="/terms.html">Terms of Sale</a>.</div>
   </details>
 </section>
 
@@ -442,6 +511,7 @@
     </div>
     <nav class="footer-links" aria-label="Footer">
       <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Sale</a>
       <a href="mailto:hello@getsecondeye.com">Contact</a>
     </nav>
   </div>
@@ -451,14 +521,29 @@
   </div>
 </footer>
 
+<div class="co-ov" id="co" hidden role="dialog" aria-modal="true" aria-labelledby="co-t">
+  <div class="co-card">
+    <button class="co-x" type="button" aria-label="Close" onclick="closeCheckout()">×</button>
+    <h3 id="co-t">Confirm your order</h3>
+    <div class="co-sum">
+      <div class="what" id="co-what"></div>
+      <div class="amt" id="co-amt"></div>
+    </div>
+    <label class="co-chk"><input type="checkbox" id="co-waiver" onchange="document.getElementById('co-go').disabled = !this.checked"><span>I request immediate access to the service and acknowledge that I waive my 14-day right of withdrawal once the service has started.</span></label>
+    <div class="co-err" id="co-err" role="alert" hidden></div>
+    <button class="cta primary" id="co-go" disabled onclick="goCheckout()">Continue to secure payment</button>
+    <p class="co-fine">By continuing you accept our <a href="/terms.html" target="_blank">Terms of Sale</a> and <a href="/privacy.html" target="_blank">Privacy Policy</a>. Payment is handled by Stripe; we never see your card.</p>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="/js/auth.js"></script>
 <script>
   // Pro and Studio follow the billing period. Default: yearly.
   const BILLING = {
     // Yearly saving is shown in the note (same style as "One-time payment"), not as a strike-through price
-    pro:    { year: ['45 €',  '', '\u2248 3.75 €/month, billed yearly<br><span class="one-time">Save 9 €</span>'],  month: '4.50 €' },
-    studio: { year: ['120 €', '', '\u2248 10 €/month, billed yearly<br><span class="one-time">Save 24 €</span>'], month: '12 €' },
+    pro:    { year: ['49 €',  '', 'Billed yearly · <span class="one-time">Save 9.80 €</span>'],  month: '4.90 €' },
+    studio: { year: ['120 €', '', 'Billed yearly · <span class="one-time">Save 24 €</span>'], month: '12 €' },
   };
   let billing = 'year';
   function setBilling(period) {
@@ -498,6 +583,102 @@
   if (window.SE) SE.onChange(() => {
     const b = document.getElementById('free-cta');
     if (b) b.textContent = SE.session ? 'Critique a photo' : 'Create free account';
+    // Pro members: the Pro button leads to their account (plan changes happen in the Stripe portal)
+    const isPro = !!(SE.profile && SE.profile.plan === 'pro');
+    const pc = document.getElementById('pro-cta');
+    if (pc) {
+      pc.textContent = isPro ? 'Your current plan' : 'Go Pro';
+      pc.onclick = isPro ? () => { location.href = '/account'; } : buyPro;
+      document.getElementById('pro-sub').textContent = isPro ? 'Manage it from your account' : 'Cancel anytime';
+    }
+  });
+
+  // ── Checkout (Pro subscription or Critique Pack) ──
+  // Displayed amounts only: the real price is set in Stripe and chosen server-side.
+  const ORDER = {
+    pro_annual:  { what: 'Second Eye Pro · yearly',  sub: 'Up to 50 critiques a month · renews yearly · cancel anytime', amt: '49 €' },
+    pro_monthly: { what: 'Second Eye Pro · monthly', sub: 'Up to 50 critiques a month · renews monthly · cancel anytime', amt: '4.90 €' },
+    pack:        { what: 'Critique Pack',            sub: '12 critiques · one-time payment · valid 12 months',          amt: '7 €' },
+  };
+  const INTENT_KEY = 'se_checkout_intent';
+  let currentProduct = null;
+
+  function buyPro() { startCheckout(billing === 'year' ? 'pro_annual' : 'pro_monthly'); }
+  function buyPack() { startCheckout('pack'); }
+
+  function payNote(product, text) {
+    const el = document.getElementById(product === 'pack' ? 'pack-pay-note' : 'pro-pay-note');
+    if (el) el.textContent = text || '';
+  }
+
+  async function startCheckout(product) {
+    track('plan_cta_clicked', { plan: product === 'pack' ? 'pack' : 'pro', product, billing });
+    payNote(product, '');
+    if (!window.SE) return;
+    await SE.ready;
+    if (!SE.config.paymentsEnabled) { payNote(product, 'Payments open very soon. Thanks for your interest!'); track('checkout_unavailable', { product }); return; }
+    if (!SE.session) {
+      // Remember the choice: the sign-in link brings the user back here and we resume
+      try { localStorage.setItem(INTENT_KEY, JSON.stringify({ product, at: Date.now() })); } catch (e) {}
+    }
+    if (!(await SE.requireAccount('checkout'))) return;
+    try { localStorage.removeItem(INTENT_KEY); } catch (e) {}
+    if (product !== 'pack' && SE.profile && SE.profile.plan === 'pro') {
+      payNote(product, 'You are already Pro. Manage your plan from your account page.');
+      return;
+    }
+    openCheckout(product);
+  }
+
+  function openCheckout(product) {
+    currentProduct = product;
+    const o = ORDER[product];
+    document.getElementById('co-what').innerHTML = `${o.what}<span>${o.sub}</span>`;
+    document.getElementById('co-amt').textContent = o.amt;
+    document.getElementById('co-waiver').checked = false;
+    document.getElementById('co-go').disabled = true;
+    document.getElementById('co-go').textContent = 'Continue to secure payment';
+    document.getElementById('co-err').hidden = true;
+    document.getElementById('co').hidden = false;
+    track('checkout_confirm_shown', { product });
+  }
+  function closeCheckout() { document.getElementById('co').hidden = true; }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCheckout(); });
+
+  async function goCheckout() {
+    const btn = document.getElementById('co-go');
+    const err = document.getElementById('co-err');
+    if (!document.getElementById('co-waiver').checked) return;
+    err.hidden = true;
+    btn.disabled = true; btn.textContent = 'Opening secure payment…';
+    const r = await SE.api('create-checkout', { method: 'POST', body: { product: currentProduct, withdrawal_waiver: true } });
+    if (r.ok && r.data && r.data.url) {
+      track('checkout_started', { product: currentProduct });
+      location.href = r.data.url;
+      return;
+    }
+    const code = r.data && r.data.error;
+    err.textContent = code === 'already_subscribed'
+      ? 'You already have a subscription. You can change it from your account page.'
+      : code === 'unauthorized'
+        ? 'Your session has expired. Please sign in again.'
+        : 'We couldn’t open the payment page. Please try again in a moment.';
+    err.hidden = false;
+    btn.disabled = false; btn.textContent = 'Continue to secure payment';
+    track('checkout_error', { product: currentProduct, error: code || r.status });
+  }
+
+  // Resume a purchase started before signing in (sign-in link opens this page again)
+  if (window.SE) SE.ready.then(() => {
+    let intent = null;
+    try { intent = JSON.parse(localStorage.getItem(INTENT_KEY) || 'null'); } catch (e) {}
+    if (intent && SE.session && ORDER[intent.product] && Date.now() - intent.at < 3600e3) {
+      if (intent.product === 'pro_monthly') setBilling('month');
+      startCheckout(intent.product);
+    } else if (intent && Date.now() - intent.at >= 3600e3) {
+      try { localStorage.removeItem(INTENT_KEY); } catch (e) {}
+    }
+    if (new URLSearchParams(location.search).get('checkout') === 'cancel') track('checkout_cancelled');
   });
 
   // ── Studio waitlist ──

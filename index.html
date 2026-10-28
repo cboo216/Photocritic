@@ -252,6 +252,15 @@
       /* RIGHT: required field on top, submit pinned to the bottom so it lines up
          with the bottom of the upload frame */
       .landing-col--right .btn-submit { margin-top: auto; }
+      /* Keeps a minimum gap above the button once "Add context" is open and the
+         auto margin has no free space left to absorb */
+      .landing-col--right .see-example { margin-bottom: 16px; }
+
+      /* Quota line hangs just below the button, out of the flow, so the column ends at the
+         button's bottom edge and the upload frame lines up with the button itself */
+      .landing-col--right { position: relative; }
+      .landing-col--right .quota-line { position: absolute; top: 100%; left: 0; right: 0; }
+      .landing-grid + .dimensions-preview { margin-top: 68px; }   /* 40px gap + room for the hanging quota line */
     }
 
     /* ── FORM ── */
@@ -286,6 +295,9 @@
       background: var(--blue-pale);
       position: relative;
     }
+
+    /* Mobile/stacked layout: tighter frame so the CTA reaches the first screen sooner */
+    @media (max-width: 819px) { .upload-zone { padding: 24px; } }
 
     .upload-zone:hover,
     .upload-zone.dragover {
@@ -1113,9 +1125,7 @@
       color: var(--ink-mid);
     }
 
-    /* ── ACCOUNT: privacy note + quota line + quota wall ── */
-    .privacy-note { font-size: 11.5px; line-height: 1.5; color: var(--ink-light); margin-top: 10px; }
-    .privacy-note a { color: var(--blue-mid); }
+    /* ── ACCOUNT: quota line + quota wall ── */
     .quota-line { font-size: 12.5px; color: var(--ink-mid); text-align: center; margin-top: 10px; }
     .quota-line.empty { color: var(--red); }
     .quota-wall { max-width: 520px; margin: 40px auto; text-align: center; background: var(--blue-pale); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px 26px; }
@@ -1224,7 +1234,6 @@
           <div class="field-error" id="photo-missing" role="alert">Add a photo to get your critique.</div>
           <div class="upload-error" id="upload-error" role="alert"></div>
           <div id="exif-badge-wrap"></div>
-          <p class="privacy-note">We keep a small thumbnail so you can review your history. Your original photo is never stored. <a href="/privacy.html#photos">Privacy policy</a></p>
           <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" style="display:none" aria-label="Upload photo file">
         </div>
       </div>
@@ -1254,7 +1263,6 @@
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           Add context (optional)
         </button>
-        <a class="see-example" href="#examples" onclick="track('example_link_clicked')">Not sure what you'll get? See an example critique</a>
         <div class="context-block" id="context-block" hidden>
           <div class="field">
             <label class="field-label" for="conditions">Shooting conditions <span class="opt">(optional)</span></label>
@@ -1265,7 +1273,7 @@
             <textarea id="intent" placeholder="e.g. I wanted to capture the energy of the place — souvenir shot but I want to improve"></textarea>
           </div>
         </div>
-
+          <br><a class="see-example" href="#examples" onclick="track('example_link_clicked')">Not sure what you'll get? See an example critique</a>
         <button class="btn-submit" id="submit-btn" onclick="submitPhoto()">Get Your Free Critique</button>
         <p class="quota-line" id="quota-line">Free account: 3 critiques a month. No card needed.</p>
       </div>
@@ -1465,6 +1473,7 @@
     </div>
     <nav class="footer-links" aria-label="Footer">
       <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Sale</a>
       <a href="mailto:hello@getsecondeye.com">Contact</a>
     </nav>
   </div>
@@ -1562,6 +1571,7 @@ let imageBase64 = null;
 let imageMimeType = 'image/jpeg';
 let detectedExif = {};
 let currentCritique = null;
+let lastCritiqueSource = null; // 'quota' | 'pack': what the latest critique used
 let thumbnail = null;        // { data, type } — ≤256px, re-encoded (no EXIF/GPS)
 let currentFileName = '';
 
@@ -1741,7 +1751,7 @@ async function submitPhoto() {
   // An account is required: sign-in link, then pseudo on first login
   if (!(await SE.requireAccount('critique'))) { track('submit_needs_account'); return; }
   const q = SE.profile && SE.profile.quota;
-  if (q && q.remaining <= 0) { showQuotaWall({ plan: SE.profile.plan, limit: q.limit, period_end: q.period_end }); return; }
+  if (q && q.remaining <= 0 && !(SE.profile.pack_credits > 0)) { showQuotaWall({ plan: SE.profile.plan, limit: q.limit, period_end: q.period_end }); return; }
 
   const conditions = document.getElementById('conditions').value.trim();
   const intent = document.getElementById('intent').value.trim();
@@ -1767,8 +1777,13 @@ async function submitPhoto() {
 
   if (r.ok && r.data && r.data.result) {
     renderResult(r.data.result, formatExif(detectedExif));
-    if (SE.profile) { SE.profile.quota = Object.assign({}, SE.profile.quota, r.data.quota); updateQuotaLine(); }
-    track('critique_completed', { plan: r.data.quota && r.data.quota.plan, remaining: r.data.quota && r.data.quota.remaining });
+    lastCritiqueSource = (r.data.quota && r.data.quota.source) || 'quota';
+    if (SE.profile) {
+      SE.profile.quota = Object.assign({}, SE.profile.quota, r.data.quota);
+      if (r.data.quota && typeof r.data.quota.pack_credits === 'number') SE.profile.pack_credits = r.data.quota.pack_credits;
+      updateQuotaLine();
+    }
+    track('critique_completed', { plan: r.data.quota && r.data.quota.plan, remaining: r.data.quota && r.data.quota.remaining, source: lastCritiqueSource });
     return;
   }
 
@@ -1796,6 +1811,7 @@ function formatDate(iso) {
 function showQuotaWall(info) {
   const isPro = info && info.plan === 'pro';
   const when = info && info.period_end ? ` Your allowance renews on ${formatDate(info.period_end)}.` : '';
+  const packLink = `<a class="btn-submit" href="/pricing.html#pack" onclick="track('quota_pack_clicked')"${isPro ? '' : ' style="background:var(--white);color:var(--blue);border:1.5px solid var(--border-mid);margin-left:8px"'}>Buy a Critique Pack</a>`;
   document.getElementById('form-view').style.display = 'none';
   const rv = document.getElementById('result-view');
   rv.style.display = 'block';
@@ -1803,9 +1819,9 @@ function showQuotaWall(info) {
     <div class="quota-wall">
       <h2>You've used your ${info && info.limit ? info.limit + ' ' : ''}critiques for this month</h2>
       <p>${isPro
-        ? 'You have reached the Pro fair-use limit.' + when + ' Need more? Write to us at hello@getsecondeye.com.'
-        : 'Go Pro for up to 50 critiques a month, PDF reports and your progress over time.' + when}</p>
-      ${isPro ? '' : '<a class="btn-submit" href="/pricing.html" onclick="track(\'quota_upgrade_clicked\')">See Pro</a>'}
+        ? 'You have reached the Pro limit.' + when + ' Need more before then? Top up with a Critique Pack: 12 extra critiques for 7 €.'
+        : 'Go Pro for up to 50 critiques a month, PDF reports and your progress over time. Or, for the odd photo, buy a Critique Pack: 12 critiques for 7 €, no subscription.' + when}</p>
+      ${isPro ? packLink : '<a class="btn-submit" href="/pricing.html" onclick="track(\'quota_upgrade_clicked\')">See Pro</a>' + packLink}
       <div><button class="btn-reset" onclick="resetForm(true)">Back</button></div>
     </div>`;
 }
@@ -1820,11 +1836,15 @@ function updateQuotaLine() {
     return;
   }
   const q = p.quota;
-  if (q.remaining <= 0) {
+  const credits = p.pack_credits || 0;
+  const packTxt = credits > 0 ? ` · ${credits} pack credit${credits > 1 ? 's' : ''}` : '';
+  if (q.remaining <= 0 && credits > 0) {
+    el.textContent = `Monthly critiques used · ${credits} pack credit${credits > 1 ? 's' : ''} left`;
+  } else if (q.remaining <= 0) {
     el.classList.add('empty');
     el.textContent = `No critiques left this month${q.period_end ? ' · renews ' + formatDate(q.period_end) : ''}`;
   } else {
-    el.textContent = `${q.remaining} of ${q.limit} critique${q.limit > 1 ? 's' : ''} left this month`;
+    el.textContent = `${q.remaining} of ${q.limit} critique${q.limit > 1 ? 's' : ''} left this month${packTxt}`;
   }
 }
 
@@ -2025,11 +2045,12 @@ document.addEventListener('toggle', e => {
 function track(event, props) {
   try { if (window.posthog) window.posthog.capture(event, props || {}); } catch(e){}
 }
-// PDF export is a Pro feature (Phase 2 wires the payment).
+// PDF export: Pro members, and Critique Pack holders (a critique paid with a credit, or credits left)
 function requestPdf() {
   if (!currentCritique) return;
-  track('pdf_click', { plan: SE.profile && SE.profile.plan });
-  if (SE.profile && SE.profile.plan === 'pro') { printCritique(); return; }
+  track('pdf_click', { plan: SE.profile && SE.profile.plan, source: lastCritiqueSource });
+  const p = SE.profile;
+  if (p && (p.plan === 'pro' || lastCritiqueSource === 'pack' || (p.pack_credits || 0) > 0)) { printCritique(); return; }
   window.location.href = '/pricing.html';
 }
 </script>

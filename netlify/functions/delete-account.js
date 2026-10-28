@@ -5,6 +5,9 @@
 
 import { json, configured, getUser, getProfile, listUserObjects, deleteObjects, deleteAuthUser } from '../lib/supabase.js';
 import { eraseContact } from '../lib/brevo.js';
+import { stripe, stripeConfigured } from '../lib/stripe.js';
+
+const LIVE_SUB = ['active', 'trialing', 'past_due', 'unpaid', 'incomplete'];
 
 export default async (request) => {
   if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
@@ -16,7 +19,18 @@ export default async (request) => {
   try { body = await request.json(); } catch { return json({ error: 'invalid_body' }, 400); }
   if (!body || body.confirm !== 'DELETE') return json({ error: 'confirmation_required' }, 400);
 
-  // Phase 2 note: an active Stripe subscription must be cancelled first (handled then).
+  // An active subscription is cancelled immediately, so a deleted account is never billed again.
+  // Invoices stay in Stripe (legal retention); remaining pack credits are lost.
+  const profile = await getProfile(user.id);
+  if (profile && profile.stripe_subscription_id && LIVE_SUB.includes(profile.subscription_status)) {
+    if (!stripeConfigured()) return json({ error: 'delete_failed' }, 500);
+    const c = await stripe(`subscriptions/${profile.stripe_subscription_id}`, { method: 'DELETE' });
+    const gone = c.ok || (c.data && c.data.error && c.data.error.code === 'resource_missing');
+    if (!gone) {
+      console.error('delete-account: subscription cancel failed', c.status);
+      return json({ error: 'subscription_cancel_failed' }, 500);
+    }
+  }
 
   try {
     const paths = await listUserObjects(user.id);
@@ -30,7 +44,6 @@ export default async (request) => {
     return json({ error: 'delete_failed' }, 500);
   }
 
-  const profile = await getProfile(user.id);
   if (profile && profile.email) await eraseContact(profile.email);
 
   if (!(await deleteAuthUser(user.id))) {

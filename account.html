@@ -312,6 +312,11 @@
   .confirm input { font: inherit; font-size: 14px; padding: 9px 11px; border: 1.5px solid var(--border-mid); border-radius: var(--radius-sm); width: 160px; margin-right: 8px; }
   .center-card { text-align: center; padding: 40px 24px; }
   .center-card p { color: var(--ink-mid); font-size: 14.5px; margin-bottom: 18px; }
+  .banner { border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 18px; font-size: 14px; line-height: 1.5; background: #EDF5ED; border: 1px solid #CFE3CF; color: #1F4D1F; }
+  .banner.wait { background: var(--blue-pale); border-color: var(--border); color: var(--ink-mid); }
+  .banner.warn { background: #FFF8E6; border-color: #F0DDB0; color: #6B4500; }
+  .banner[hidden] { display: none; }
+  .actions .left { display: flex; gap: 10px; flex-wrap: wrap; }
   .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: space-between; align-items: center; margin: 4px 0 18px; }
   [hidden] { display: none !important; }
   /* ── My critiques ── */
@@ -385,6 +390,7 @@
   </div>
 
   <div id="state-in" hidden>
+    <div class="banner" id="banner" role="status" hidden></div>
     <div class="panel">
       <div class="row">
         <div class="k">Pseudo</div>
@@ -401,6 +407,10 @@
         <div class="k">Plan</div>
         <div class="v"><span class="plan-badge" id="plan"></span> <span class="sub" id="plan-sub"></span></div>
       </div>
+      <div class="row" id="row-credits" hidden>
+        <div class="k">Critique Pack credits<span class="sub">Used once your monthly critiques are gone.</span></div>
+        <div class="v" id="credits"></div>
+      </div>
       <div class="row">
         <div class="k">Usage this period</div>
         <div class="v"><span id="usage"></span><div class="meter"><span id="usage-bar" style="width:0"></span></div><span class="sub" id="usage-sub"></span></div>
@@ -412,9 +422,14 @@
     </div>
 
     <div class="actions">
-      <a class="btn primary" href="/pricing.html" id="upgrade-btn">Go Pro</a>
+      <div class="left">
+        <a class="btn primary" href="/pricing.html" id="upgrade-btn">Go Pro</a>
+        <button class="btn" id="manage-btn" onclick="manageBilling()" hidden>Manage subscription</button>
+        <a class="btn" href="/pricing.html#pack" id="pack-btn">Buy a pack</a>
+      </div>
       <button class="btn" onclick="signOut()">Sign out</button>
     </div>
+    <div class="msg err" id="billing-msg" role="alert" style="margin:-10px 0 16px"></div>
 
     <div class="hist-head"><h2>My critiques</h2><span id="hist-count"></span></div>
     <div id="hist" class="hist"></div>
@@ -425,7 +440,7 @@
 
     <div class="panel danger-zone">
       <div class="row" style="border:none"><div class="k">Delete my account</div></div>
-      <p>This permanently deletes your account, all your critiques and every thumbnail we hold. It cannot be undone.</p>
+      <p>This permanently deletes your account, all your critiques and every thumbnail we hold. Any active subscription is cancelled immediately and unused pack credits are lost. It cannot be undone.</p>
       <div id="delete-step1"><button class="btn danger" onclick="askDelete()">Delete my account</button></div>
       <div id="delete-step2" class="confirm" hidden>
         <p style="margin-top:0">Type <strong>DELETE</strong> to confirm.</p>
@@ -450,6 +465,7 @@
     </div>
     <nav class="footer-links" aria-label="Footer">
       <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Sale</a>
       <a href="mailto:hello@getsecondeye.com">Contact</a>
     </nav>
   </div>
@@ -482,8 +498,23 @@
     const pro = p.plan === 'pro';
     $('plan').textContent = pro ? 'Pro' : 'Free';
     $('plan').classList.toggle('pro', pro);
-    $('plan-sub').textContent = pro && p.current_period_end ? 'Renews on ' + fmt(p.current_period_end) : '';
+    const per = p.billing_interval === 'year' ? 'yearly' : p.billing_interval === 'month' ? 'monthly' : '';
+    let planSub = '';
+    if (pro && p.current_period_end) {
+      planSub = p.cancel_at_period_end
+        ? 'Cancelled · Pro until ' + fmt(p.current_period_end)
+        : (per ? 'Billed ' + per + ' · ' : '') + 'Renews on ' + fmt(p.current_period_end);
+    } else if (!pro && ['past_due', 'unpaid'].includes(p.subscription_status)) {
+      planSub = 'Payment failed · update your card to get Pro back';
+    }
+    $('plan-sub').textContent = planSub;
     $('upgrade-btn').hidden = pro;
+    // Manage subscription: anyone with a Stripe subscription history (cancel, card, invoices)
+    $('manage-btn').hidden = !(p.has_billing_account && p.subscription_status);
+    const credits = p.pack_credits || 0;
+    $('row-credits').hidden = credits <= 0;
+    $('credits').innerHTML = esc(credits + ' credit' + (credits === 1 ? '' : 's') + ' left')
+      + (p.pack_credits_expire_at ? '<span class="sub">Valid until ' + esc(fmt(p.pack_credits_expire_at)) + '</span>' : '');
     const q = p.quota || { used: 0, limit: 0 };
     $('usage').textContent = `${q.used} of ${q.limit} critiques used`;
     $('usage-bar').style.width = (q.limit ? Math.min(100, q.used / q.limit * 100) : 0) + '%';
@@ -514,6 +545,54 @@
     else { box.checked = !box.checked; msg.className = 'msg err'; msg.textContent = 'Could not save.'; }
   }
 
+  // ── Billing ──
+  async function manageBilling() {
+    const msg = $('billing-msg'); msg.textContent = '';
+    $('manage-btn').disabled = true;
+    const r = await SE.api('customer-portal', { method: 'POST' });
+    if (r.ok && r.data && r.data.url) { location.href = r.data.url; return; }
+    $('manage-btn').disabled = false;
+    msg.textContent = 'We couldn’t open the billing page. Please try again, or write to hello@getsecondeye.com.';
+  }
+
+  // Back from Stripe Checkout: the webhook may take a few seconds, so poll until the change shows
+  (function checkoutReturn() {
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('checkout') !== 'success') return;
+    const product = qs.get('product') || '';
+    const isPack = product === 'pack';
+    history.replaceState(null, '', location.pathname);
+    try { if (window.posthog) window.posthog.capture('checkout_completed', { product }); } catch (e) {}
+    const sessionId = qs.get('session_id') || '';
+    const banner = $('banner');
+    // Pack: done once its ledger row exists (read with the user's own token, row-level security applies)
+    const packAdded = async () => {
+      if (!sessionId || !SE.client) return false;
+      const { data } = await SE.client.from('credit_ledger').select('id').eq('stripe_session_id', sessionId).limit(1);
+      return !!(data && data.length);
+    };
+    SE.ready.then(async () => {
+      if (!SE.session) return;
+      banner.className = 'banner wait'; banner.hidden = false;
+      banner.textContent = 'Payment received. Activating your ' + (isPack ? 'credits' : 'Pro plan') + '…';
+      for (let tries = 0; tries < 15; tries++) {
+        const p = SE.profile;
+        if (p && (isPack ? await packAdded() : p.plan === 'pro')) {
+          if (isPack) await SE.refreshProfile();
+          banner.className = 'banner';
+          banner.textContent = isPack
+            ? 'Thank you! Your Critique Pack is ready: you now have ' + (SE.profile.pack_credits || 0) + ' credits.'
+            : 'Welcome to Pro! You now have up to ' + (p.quota && p.quota.limit) + ' critiques a month and PDF reports.';
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 2000));
+        await SE.refreshProfile();
+      }
+      banner.className = 'banner warn';
+      banner.textContent = 'Your payment went through, but activation is taking longer than usual. Refresh this page in a minute. If nothing changes, write to hello@getsecondeye.com.';
+    });
+  })();
+
   async function signOut() { await SE.signOut(); location.href = '/'; }
 
   function askDelete() { $('delete-step1').hidden = true; $('delete-step2').hidden = false; $('delete-confirm').focus(); }
@@ -526,7 +605,9 @@
     const r = await SE.api('delete-account', { method: 'POST', body: { confirm: 'DELETE' } });
     if (!r.ok) {
       $('delete-btn').disabled = false;
-      msg.textContent = 'Something went wrong. Nothing was deleted. Please try again or write to hello@getsecondeye.com.';
+      msg.textContent = r.data && r.data.error === 'subscription_cancel_failed'
+        ? 'We couldn’t cancel your subscription, so nothing was deleted. Cancel it with “Manage subscription” first, or write to hello@getsecondeye.com.'
+        : 'Something went wrong. Nothing was deleted. Please try again or write to hello@getsecondeye.com.';
       return;
     }
     try { if (window.posthog) window.posthog.capture('account_deleted'); } catch (e) {}

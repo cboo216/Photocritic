@@ -6,6 +6,9 @@ export default async () => {
   const body = {
     supabaseUrl: process.env.SUPABASE_URL || null,
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || null,
+    // true once Stripe is set up: pricing buttons open Checkout instead of the "opening soon" note
+    paymentsEnabled: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_MONTHLY
+      && process.env.STRIPE_PRICE_ANNUAL && process.env.STRIPE_PRICE_PACK),
   };
   return new Response(JSON.stringify(body), {
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
