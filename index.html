@@ -1273,7 +1273,7 @@
             <textarea id="intent" placeholder="e.g. I wanted to capture the energy of the place — souvenir shot but I want to improve"></textarea>
           </div>
         </div>
-          <br><a class="see-example" href="#examples" onclick="track('example_link_clicked')">Not sure what you'll get? See an example critique</a>
+          <br><a class="see-example" href="#examples" onclick="track('example_link_clicked'); document.getElementById('examples').scrollIntoView({ behavior: 'smooth' }); return false;">Not sure what you'll get? See an example critique</a>
         <button class="btn-submit" id="submit-btn" onclick="submitPhoto()">Get Your Free Critique</button>
         <p class="quota-line" id="quota-line">Free account: 3 critiques a month. No card needed.</p>
       </div>
@@ -1486,6 +1486,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="/js/auth.js"></script>
 <script>
+// Always open at the top of the page: an old /#examples link (shared or reloaded)
+// lands on the form, not mid-page, and the address bar is cleaned
+if (location.hash === '#examples') {
+  history.replaceState(null, '', location.pathname + location.search);
+  window.scrollTo(0, 0);
+  window.addEventListener('load', () => window.scrollTo(0, 0), { once: true });
+}
+
 // The v2.8 critique prompt now lives server-side (netlify/lib/prompt.js).
 
 // ─────────────────────────────────────────────────────────────
