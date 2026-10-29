@@ -866,7 +866,9 @@
       transition: background 0.15s;
       font-weight: 600;
       flex: 1;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     }
+    .btn-pdf .icon { width: 16px; height: 16px; flex-shrink: 0; }
 
     .btn-pdf:hover {
       background: var(--blue-dark);
@@ -1765,7 +1767,7 @@ function renderResult(r, exifParts) {
       </div>
 
       <div class="result-actions" style="display: flex; gap: 12px; margin-top: 28px;">
-        <button class="btn-pdf" onclick="requestPdf()">⬇ Save as PDF</button>
+        <button class="btn-pdf" onclick="requestPdf()"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Save as PDF</button>
         <button class="btn-reset" onclick="resetForm()">Analyse another photo</button>
       </div>
     </div>`;
