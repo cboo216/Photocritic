@@ -1,0 +1,51 @@
+/* Second Eye — design tokens (single source of truth, see Brand Guide v1.3).
+   Loaded by every page before its own <style>. Change a value here, not in a page. */
+:root {
+  /* Brand blues */
+  --blue:       #2B4F8A;   /* primary action, links */
+  --blue-dark:  #1C3660;   /* hover, display headings */
+  --blue-mid:   #3D6199;   /* focus, secondary accent */
+  --blue-light: #EBF0F8;   /* hover fills, hairlines */
+  --blue-pale:  #F4F7FC;   /* page & panel background */
+
+  /* Ink / text */
+  --ink:        #1A1E2E;
+  --ink-mid:    #4A5168;
+  --ink-light:  #8892AA;
+
+  /* Surface / line */
+  --white:      #FFFFFF;
+  --border:     #D6DDE8;
+  --border-mid: #C2CCDB;   /* input borders */
+  --photo-surround: #2A2E3A; /* behind uploaded photos */
+
+  /* Logo — reserved for the mark, never for UI */
+  --logo-blue:  #102F57;   /* light mark: img/secondeye-light.png */
+
+  /* Score system — 1–3 red · 4–5 amber · 6–7 teal · 8–10 green (scores only) */
+  --red:   #8A1F1F;  --red-bg:   #FDEEED;  --red-border:   #F5C0C0;
+  --amber: #8A5A00;  --amber-bg: #FFF8E6;
+  --teal:  #1C6E6A;  --teal-bg:  #E5F1F0;
+  --green: #2D6A2D;  --green-bg: #EDF5ED;  --green-border: #A8D4A8;
+
+  /* Status banners (account) — kept apart from score colours on purpose */
+  --success-border: #CFE3CF;  --success-ink: #1F4D1F;   /* on --green-bg */
+  --warn-border:    #F0DDB0;  --warn-ink:    #6B4500;   /* on --amber-bg */
+  --danger-border:  #E8C4C4;                            /* with --red text */
+
+  /* Dimension tints (result cards) */
+  --dim-composition:  #FCECE1;
+  --dim-light:        #FFF2D4;
+  --dim-sharpness:    #DDE1E7;
+  --dim-color:        #E6ECE2;
+  --dim-storytelling: #F7DADC;
+  --dim-originality:  #EAE1F2;
+
+  /* Radii */
+  --radius-sm: 6px;  --radius-md: 10px;  --radius-lg: 16px;
+
+  /* Layout — one content column for every page */
+  --page-max: 1000px;
+  --gutter:   20px;
+}
+@media (max-width: 480px) { :root { --gutter: 16px; } }
