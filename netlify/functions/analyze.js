@@ -8,7 +8,9 @@ import { json, configured, getUser, rpc, rest, uploadThumbnail, quotaLimits } fr
 import { validateThumbnail } from '../lib/thumbnail.js';
 
 const MAX_TOKENS = 1500;
-const RETRY_BUDGET_MS = 20000; // only retry if the first attempt left enough time
+// Netlify cuts the function at ~30 s. A retry takes as long as the first call (~25 s today),
+// so only retry when the first attempt was fast; a late retry guarantees a timeout.
+const RETRY_BUDGET_MS = 10000;
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_B64 = 6.2 * 1024 * 1024;
 
@@ -26,6 +28,7 @@ function validateResult(r) {
 }
 
 async function callAnthropic(userContent) {
+  const t0 = Date.now();
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -46,6 +49,9 @@ async function callAnthropic(userContent) {
     throw err;
   }
   const data = await res.json();
+  // Timing + size of every call, to see where the 30 s go (Netlify function log)
+  const u = data.usage || {};
+  console.log(`analyze: anthropic ${Date.now() - t0} ms · in ${u.input_tokens} tok · out ${u.output_tokens} tok · stop ${data.stop_reason}`);
   const text = (data.content || []).map((c) => c.text || '').join('');
   const clean = text.replace(/```json|```/g, '').trim();
   try { return JSON.parse(clean); } catch { return null; }
@@ -120,6 +126,8 @@ export default async (request) => {
   image.data = null; userContent[1].source.data = null; body = null;
 
   // ── Persist ──
+  const tPersist = Date.now();
+  console.log(`analyze: critique ready at ${tPersist - started} ms after the AI step started`);
   const critiqueId = crypto.randomUUID();
   const dims = Object.fromEntries(DIMENSION_KEYS.map((k) => [k, result.dimensions[k]]));
   const ins = await rest('critiques', {
@@ -167,6 +175,7 @@ export default async (request) => {
     }
   }
 
+  console.log(`analyze: saved ${saved} · thumbnail ${thumbnailSaved ? 'ok' : thumbnailError} · persist+thumbnail ${Date.now() - tPersist} ms`);
   return json({
     result,
     critique_id: saved ? critiqueId : null,

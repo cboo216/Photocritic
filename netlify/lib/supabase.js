@@ -62,6 +62,8 @@ export async function uploadThumbnail(path, bytes, contentType) {
     method: 'POST',
     headers: serviceHeaders({ 'Content-Type': contentType, 'x-upsert': 'true' }),
     body: bytes,
+    // A thumbnail is never worth losing the critique: give up after 5 s
+    signal: AbortSignal.timeout(5000),
   });
   if (res.ok) return { ok: true };
   const detail = (await res.text().catch(() => '')).slice(0, 200);

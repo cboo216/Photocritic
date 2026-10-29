@@ -576,6 +576,11 @@
       line-height: 1.4;
     }
 
+    /* Error / recovery actions: centred under the message */
+    .result-error-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+    .result-error-actions .btn-reset { margin-top: 0; text-decoration: none; display: inline-block; }
+    .loading-text a { color: var(--blue-mid); }
+
     /* ── LOADING ── */
     .loading-state {
       padding: 48px 0;
@@ -1573,6 +1578,7 @@ async function submitPhoto() {
       <div class="loading-text">Analysing your photo…</div>
     </div>`;
 
+  const submittedAt = Date.now();
   const r = await SE.api('analyze', {
     method: 'POST',
     body: {
@@ -1595,6 +1601,38 @@ async function submitPhoto() {
   }
 
   const err = (r.data && r.data.error) || '';
+
+  // Reply lost (network drop, or Netlify cut the function after it had already saved the critique):
+  // the critique may exist even though we never got it. Look for it before saying anything.
+  const replyLost = r.status === 0 || (r.status >= 500 && !err) || err === 'network';
+  if (replyLost) {
+    resultView.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Finishing your critique…</div>
+      </div>`;
+    const recovered = await recoverCritique(submittedAt, photoType, currentFileName);
+    if (recovered) {
+      renderResult(recovered, formatExif(detectedExif));
+      lastCritiqueSource = 'quota';
+      SE.refreshProfile().then(updateQuotaLine).catch(() => {});
+      track('critique_recovered', { status: r.status });
+      return;
+    }
+    console.error('Analyze reply lost:', r.status, err);
+    track('critique_failed', { status: r.status, error: err || 'reply_lost' });
+    SE.refreshProfile().then(updateQuotaLine).catch(() => {});
+    resultView.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-text">We lost the connection while your critique was being prepared.<br>Check <a href="/account">My account</a> in a minute before trying again: if it appears there, it has been counted.</div>
+      </div>
+      <div class="result-error-actions">
+        <a class="btn-reset" href="/account">Go to My account</a>
+        <button class="btn-reset" onclick="resetForm(true)">Try again</button>
+      </div>`;
+    return;
+  }
+
   if (r.status === 402) { showQuotaWall(r.data); track('quota_exceeded', { plan: r.data.plan }); SE.refreshProfile(); return; }
   if (r.status === 401) { resetForm(true); SE.openSignIn('critique', 'Your session has expired. Please sign in again.'); return; }
   const msg = r.status === 503 || err === 'ai_busy'
@@ -1608,7 +1646,9 @@ async function submitPhoto() {
     <div class="loading-state">
       <div class="loading-text">${msg}</div>
     </div>
-    <button class="btn-reset" onclick="resetForm(true)">Try again</button>`;
+    <div class="result-error-actions">
+      <button class="btn-reset" onclick="resetForm(true)">Try again</button>
+    </div>`;
 }
 
 function formatDate(iso) {
@@ -1685,6 +1725,25 @@ function scoreBg(s) {
   if (s >= 6) return 'var(--teal-bg)';
   if (s >= 4) return 'var(--amber-bg)';
   return 'var(--red-bg)';
+}
+
+async function recoverCritique(sinceMs, genre, title) {
+  if (!SE.client || !SE.session) return null;
+  const since = new Date(sinceMs - 60 * 1000).toISOString();   // 1 min margin for clock drift
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt) await new Promise((res) => setTimeout(res, 2500));
+    try {
+      const { data, error } = await SE.client.from('critiques')
+        .select('id, created_at, genre, title, critique_text')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false }).limit(3);
+      if (error) continue;
+      const norm = (t) => String(t || '').trim();
+      const hit = (data || []).find((c) => c.genre === genre && norm(c.title) === norm(title));
+      if (hit) { try { return JSON.parse(hit.critique_text); } catch (e) { return null; } }
+    } catch (e) {}
+  }
+  return null;
 }
 
 function renderResult(r, exifParts) {
