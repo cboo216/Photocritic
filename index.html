@@ -93,7 +93,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -175,16 +175,7 @@
       flex-shrink: 0;
     }
 
-    .header-tagline {
-      font-family: 'Montserrat';
-      font-size: 20px;
-      color: #315593;
-      font-weight: 300;
-      letter-spacing: 0.03em;
-      display: none;
-    }
 
-    @media (min-width: 540px) { .header-tagline { display: block; } }
 
     /* ── MAIN LAYOUT ── */
     main {
@@ -199,6 +190,7 @@
       font-family: 'Montserrat', sans-serif;
       font-size: clamp(30px, 5.5vw, 42px);
       line-height: 1.15;
+      font-weight: 600;   /* explicit: same hero weight on every page (brand guide) */
       color: var(--blue-dark);
       letter-spacing: -0.02em;
       margin-bottom: 22px;
