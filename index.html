@@ -1281,7 +1281,7 @@
       <a href="mailto:hello@getsecondeye.com">Contact</a>
     </nav>
   </div>
-  <p class="footer-note">Your original photo is never stored by Second Eye. We keep only a small 256 px thumbnail, stripped of all metadata, so you can review your history.</p>
+  <p class="footer-note">Your original photo is never kept by Second Eye: it is deleted within seconds, as soon as your critique starts, and in every case within 15 minutes. We keep only a small 256 px thumbnail, stripped of all metadata, so you can review your history.</p>
   <div class="footer-bottom">
     © 2026 Second Eye &nbsp;·&nbsp; <a href="https://getsecondeye.com">getsecondeye.com</a>
   </div>
@@ -1588,6 +1588,49 @@ async function submitPhoto() {
     }
   });
 
+  // Asynchronous critique: the server started a background job; wait for it here
+  if (r.status === 202 && r.data && r.data.job_id) {
+    const quota = r.data.quota || null;
+    lastCritiqueSource = (quota && quota.source) || 'quota';
+    if (SE.profile && quota) {
+      SE.profile.quota = Object.assign({}, SE.profile.quota, quota);
+      if (typeof quota.pack_credits === 'number') SE.profile.pack_credits = quota.pack_credits;
+      updateQuotaLine();
+    }
+    const outcome = await waitForCritique(r.data.job_id, resultView);
+    if (outcome.result) {
+      renderResult(outcome.result, formatExif(detectedExif));
+      track('critique_completed', { plan: quota && quota.plan, remaining: quota && quota.remaining, source: lastCritiqueSource, mode: 'async' });
+      return;
+    }
+    if (outcome.error) {
+      // The server refunded the critique: "not counted" is true here
+      SE.refreshProfile().then(updateQuotaLine).catch(() => {});
+      const failMsg = outcome.error === 'ai_busy'
+        ? 'Our AI is very busy right now. Your critique was not counted. Please try again in a minute.'
+        : 'Something went wrong and your critique was not counted. Please try again.';
+      track('critique_failed', { status: 'async', error: outcome.error });
+      resultView.innerHTML = `
+        <div class="loading-state">
+          <div class="loading-text">${failMsg}</div>
+        </div>
+        <div class="result-error-actions">
+          <button class="btn-reset" onclick="resetForm(true)">Try again</button>
+        </div>`;
+      return;
+    }
+    // Still running after the wait window: it will land in My account
+    track('critique_slow', { job: r.data.job_id });
+    resultView.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-text">Your critique is taking longer than usual. It is still being prepared and should appear in <a href="/account">My account</a> within a few minutes. If it doesn't, it will not be counted.</div>
+      </div>
+      <div class="result-error-actions">
+        <a class="btn-reset" href="/account">Go to My account</a>
+      </div>`;
+    return;
+  }
+
   if (r.ok && r.data && r.data.result) {
     renderResult(r.data.result, formatExif(detectedExif));
     lastCritiqueSource = (r.data.quota && r.data.quota.source) || 'quota';
@@ -1611,7 +1654,7 @@ async function submitPhoto() {
         <div class="loading-spinner"></div>
         <div class="loading-text">Finishing your critique…</div>
       </div>`;
-    const recovered = await recoverCritique(submittedAt, photoType, currentFileName);
+    const recovered = await recoverCritique(submittedAt, photoType, currentFileName, 24);
     if (recovered) {
       renderResult(recovered, formatExif(detectedExif));
       lastCritiqueSource = 'quota';
@@ -1727,10 +1770,36 @@ function scoreBg(s) {
   return 'var(--red-bg)';
 }
 
-async function recoverCritique(sinceMs, genre, title) {
+// Polls the job row (row-level security: the user only sees their own jobs).
+// Critiques take ~25–30 s; we wait up to 3 minutes before handing over to My account.
+async function waitForCritique(jobId, resultView) {
+  if (!SE.client) return {};
+  const t0 = Date.now();
+  let slowShown = false;
+  await new Promise((res) => setTimeout(res, 6000));
+  while (Date.now() - t0 < 180000) {
+    try {
+      const { data: job } = await SE.client.from('critique_jobs').select('status, error').eq('id', jobId).maybeSingle();
+      if (job && job.status === 'done') {
+        const { data: c } = await SE.client.from('critiques').select('critique_text').eq('id', jobId).maybeSingle();
+        if (c) { try { return { result: JSON.parse(c.critique_text) }; } catch (e) { return { error: 'internal' }; } }
+      }
+      if (job && job.status === 'failed') return { error: job.error || 'internal' };
+    } catch (e) {}
+    if (!slowShown && Date.now() - t0 > 45000) {
+      slowShown = true;
+      const txt = resultView.querySelector('.loading-text');
+      if (txt) txt.textContent = 'Still working. A detailed critique takes about 30 seconds…';
+    }
+    await new Promise((res) => setTimeout(res, 2500));
+  }
+  return {};
+}
+
+async function recoverCritique(sinceMs, genre, title, attempts = 4) {
   if (!SE.client || !SE.session) return null;
   const since = new Date(sinceMs - 60 * 1000).toISOString();   // 1 min margin for clock drift
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
     if (attempt) await new Promise((res) => setTimeout(res, 2500));
     try {
       const { data, error } = await SE.client.from('critiques')

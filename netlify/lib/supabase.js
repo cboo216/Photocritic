@@ -112,3 +112,41 @@ export function quotaLimits() {
 }
 
 export const isUuid = (s) => typeof s === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+
+// ── Generic private-bucket helpers (service role) ──
+// Used for the encrypted photo hand-off between analyze and analyze-background.
+export const JOBS_BUCKET = 'critique-jobs';
+
+export async function putObject(bucket, path, bytes, contentType = 'application/octet-stream', timeoutMs = 10000) {
+  const res = await fetch(`${URL_()}/storage/v1/object/${bucket}/${path}`, {
+    method: 'POST',
+    headers: serviceHeaders({ 'Content-Type': contentType, 'x-upsert': 'true' }),
+    body: bytes,
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (res.ok) return { ok: true };
+  const detail = (await res.text().catch(() => '')).slice(0, 200);
+  return { ok: false, status: res.status, detail };
+}
+
+export async function getObject(bucket, path, timeoutMs = 10000) {
+  const res = await fetch(`${URL_()}/storage/v1/object/${bucket}/${path}`, {
+    headers: serviceHeaders(),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) return null;
+  return Buffer.from(await res.arrayBuffer());
+}
+
+export async function removeObjects(bucket, paths) {
+  if (!paths.length) return true;
+  try {
+    const res = await fetch(`${URL_()}/storage/v1/object/${bucket}`, {
+      method: 'DELETE',
+      headers: serviceHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ prefixes: paths }),
+      signal: AbortSignal.timeout(10000),
+    });
+    return res.ok;
+  } catch { return false; }
+}

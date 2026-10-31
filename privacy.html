@@ -154,7 +154,7 @@
   <main>
     <div class="doc-head">
       <h1>Privacy Policy</h1>
-      <div class="updated">Last updated: 17 October 2026</div>
+      <div class="updated">Last updated: 31 October 2026</div>
       <p class="lede">This policy explains what personal data Second Eye collects when you use <a href="https://getsecondeye.com">getsecondeye.com</a>, why we collect it, who we share it with, and the rights you have over it. We keep data collection to the minimum needed to give you a useful photo critique.</p>
     </div>
 
@@ -169,7 +169,7 @@
       <tr><td>Your pseudo and your email preference</td><td>When you set up or edit your account</td><td>To run your account and respect your choice about marketing emails</td></tr>
       <tr><td>Your plan and usage (number of critiques used this period, Critique Pack credits)</td><td>As you use the service</td><td>To apply your monthly allowance and your credits</td></tr>
       <tr><td>Billing data: your Stripe customer reference, subscription status and renewal date, purchase history, and the date you waived your withdrawal right</td><td>When you subscribe to Pro or buy a Critique Pack</td><td>To provide what you paid for and meet our accounting obligations. Your card details go directly to Stripe; we never see or store them</td></tr>
-      <tr><td>The photo you upload</td><td>When you request a critique</td><td>To analyse the image and generate your feedback. Never stored by us (see section 3)</td></tr>
+      <tr><td>The photo you upload</td><td>When you request a critique</td><td>To analyse the image and generate your feedback. Never kept by us: deleted within seconds (see section 3)</td></tr>
       <tr><td>Image metadata (EXIF): camera settings such as aperture, shutter speed, ISO and focal length</td><td>Read in your browser when you upload a photo</td><td>To give the critique useful technical context. GPS location is never sent or stored</td></tr>
       <tr><td>Optional details you type (photo type, shooting conditions, creative intent)</td><td>When you request a critique</td><td>To tailor the feedback</td></tr>
       <tr><td>Your critiques: a small thumbnail, the critique text, scores, photo type and title (your file name)</td><td>After each critique</td><td>To provide your critique history</td></tr>
@@ -180,12 +180,13 @@
 
     <h2 id="photos"><span class="num">3</span>Photos and critiques</h2>
     <ul>
-      <li><strong>What we process:</strong> your photo, resized in your browser, analysed in memory and sent to Anthropic (our AI provider) to generate the critique. It is <strong>never stored by us</strong>: not in our database, not in our file storage, not in our logs.</li>
+      <li><strong>What we process:</strong> your photo, resized in your browser, is sent to Anthropic (our AI provider), which analyses it and generates the critique.</li>
+      <li><strong>How it gets there:</strong> our server holds your photo for a few seconds in a private storage area, encrypted with a one-time key that we never store, and deletes it as soon as the critique starts. If a critique fails, an automatic clean-up deletes it within 15 minutes at most. We <strong>never keep your original photo</strong>: not in our database, not in our file storage, not in our logs.</li>
       <li><strong>What we keep:</strong> a thumbnail (256 px maximum on the longest side, WebP or JPEG, re-encoded in your browser so that all metadata, including GPS location, is removed), the critique text, the scores, the photo type and the title, linked to your account.</li>
       <li><strong>Why:</strong> to provide your critique history. The legal basis is the performance of our contract with you (Art. 6(1)(b) GDPR).</li>
       <li><strong>How long:</strong> until you delete the critique or your account. Deletion is immediate and includes the thumbnail.</li>
       <li><strong>Who can see it:</strong> only you. Thumbnails sit in a private storage area that only your account can read. They are never used for analytics or to train AI models.</li>
-      <li><strong>Our AI provider:</strong> Anthropic processes your photo under its commercial terms, which do not allow it to train its models on your data. We recommend not uploading images you would not be comfortable sharing with a third-party processing service.</li>
+      <li><strong>Our AI provider:</strong> Anthropic processes your photo under its commercial terms, which do not allow it to train its models on your data. Anthropic deletes the photo and the critique from its systems within 30 days, except where it must keep them longer to enforce its usage policy or comply with the law; see <a href="https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data" target="_blank" rel="noopener">Anthropic's data retention</a>. We recommend not uploading images you would not be comfortable sharing with a third-party processing service.</li>
     </ul>
 
     <h2><span class="num">4</span>Why we're allowed to use your data (legal bases)</h2>
@@ -213,7 +214,7 @@
 
     <h2><span class="num">7</span>How long we keep it</h2>
     <ul>
-      <li><strong>Uploaded photos:</strong> never stored by us; held in memory only while the critique is generated.</li>
+      <li><strong>Uploaded photos:</strong> never kept by us. Held encrypted for a few seconds while the critique starts, then deleted (within 15 minutes at most if a critique fails). Anthropic's own retention is described in section 3.</li>
       <li><strong>Account data, critiques and thumbnails:</strong> until you delete them or delete your account.</li>
       <li><strong>Invoices and payment records:</strong> 10 years, as required by French law (Code de commerce, art. L123-22), even if you delete your account. They are held by Stripe and contain only what an invoice needs.</li>
       <li><strong>Marketing emails:</strong> until you unsubscribe or switch the option off in your account.</li>
@@ -247,7 +248,7 @@
       <a href="mailto:hello@getsecondeye.com">Contact</a>
     </nav>
   </div>
-  <p style="font-size:11px;color:var(--ink-light);text-align:center;max-width:640px;margin:0 auto 10px;padding:0 var(--gutter);line-height:1.5">Your original photo is never stored by Second Eye. We keep only a small 256 px thumbnail, stripped of all metadata, so you can review your history.</p>
+  <p style="font-size:11px;color:var(--ink-light);text-align:center;max-width:640px;margin:0 auto 10px;padding:0 var(--gutter);line-height:1.5">Your original photo is never kept by Second Eye: it is deleted within seconds, as soon as your critique starts, and in every case within 15 minutes. We keep only a small 256 px thumbnail, stripped of all metadata, so you can review your history.</p>
   <div class="footer-bottom">
     © 2026 Second Eye &nbsp;·&nbsp; <a href="https://getsecondeye.com">getsecondeye.com</a>
   </div>
