@@ -58,7 +58,11 @@ Carte qui marche : `4242 4242 4242 4242`, date future, CVC quelconque. Carte ref
 - [ ] Déconnecté → « Go Pro » → e-mail de connexion → retour sur Pricing → la fenêtre de confirmation s'ouvre seule.
 - [ ] Le bouton « Continue to secure payment » reste grisé tant que la case de renonciation n'est pas cochée.
 - [ ] Paiement Pro mensuel réussi → retour sur Mon compte → bandeau « Welcome to Pro » → badge PRO, quota 50, date de renouvellement. Supabase : `plan = pro`, `withdrawal_waiver_at` rempli.
-- [ ] « Manage subscription » ouvre le portail Stripe ; annuler → compte affiche « Cancelled · Pro until … » (reste Pro jusqu'à la fin de période).
+- [ ] Ligne Plan (Pro actif) : « Change plan » et « Cancel subscription » visibles.
+- [ ] « Cancel subscription » ouvre directement l'écran d'annulation Stripe ; confirmer → retour sur Mon compte → « Cancelled · Pro until … » en quelques secondes ; quota Pro toujours actif.
+- [ ] « Resume subscription » ouvre le portail → « Renouveler » → retour → « Renews on … ».
+- [ ] « Change plan » ouvre le choix mensuel ↔ annuel ; après bascule → « Billed yearly ».
+- [ ] « Billing & invoices » ouvre l'accueil du portail (factures, carte).
 - [ ] Fin de période simulée (Stripe → l'abonnement → « Cancel immediately ») → retour au plan Free.
 - [ ] Carte refusée → message d'erreur Stripe, pas de crash, compte inchangé.
 - [ ] Pack acheté → bandeau « Your Critique Pack is ready: 12 credits ». Supabase : `pack_credits = 12`, une ligne `pack_purchase` dans `credit_ledger`.
