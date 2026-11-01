@@ -195,6 +195,13 @@
   .row .sub { display: block; font-size: 12px; color: var(--ink-light); margin-top: 2px; }
   .plan-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; background: var(--blue-light); color: var(--blue-dark); }
   .plan-badge.pro { background: var(--blue); color: var(--white); }
+  .plan-actions { display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap; margin-top: 8px; }
+  .plan-actions[hidden] { display: none; }
+  .linkbtn { font: inherit; font-size: 12.5px; font-weight: 600; background: none; border: none; padding: 2px 0; color: var(--blue-mid); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .linkbtn:hover { color: var(--blue-dark); }
+  .linkbtn.quiet { color: var(--ink-mid); }
+  .linkbtn:disabled { opacity: .6; cursor: progress; }
+  .linkbtn[hidden] { display: none; }
   .meter { width: 160px; height: 6px; background: var(--blue-light); border-radius: 4px; overflow: hidden; margin: 6px 0 0 auto; }
   .meter span { display: block; height: 100%; background: var(--blue-mid); }
   .pseudo-edit { display: flex; gap: 8px; align-items: center; }
@@ -315,7 +322,16 @@
       <div class="row"><div class="k">Email</div><div class="v" id="email"></div></div>
       <div class="row">
         <div class="k">Plan</div>
-        <div class="v"><span class="plan-badge" id="plan"></span> <span class="sub" id="plan-sub"></span></div>
+        <div class="v">
+          <span class="plan-badge" id="plan"></span> <span class="sub" id="plan-sub"></span>
+          <div class="plan-actions" id="plan-actions" hidden>
+            <button class="linkbtn" id="pa-change" onclick="manageBilling('change', this)">Change plan</button>
+            <button class="linkbtn quiet" id="pa-cancel" onclick="manageBilling('cancel', this)">Cancel subscription</button>
+            <button class="linkbtn" id="pa-resume" onclick="manageBilling(null, this)">Resume subscription</button>
+            <button class="linkbtn" id="pa-card" onclick="manageBilling('card', this)">Update card</button>
+          </div>
+          <div class="msg err" id="plan-msg" role="alert"></div>
+        </div>
       </div>
       <div class="row" id="row-credits" hidden>
         <div class="k">Critique Pack credits<span class="sub">Used once your monthly critiques are gone.</span></div>
@@ -334,7 +350,7 @@
     <div class="actions">
       <div class="left">
         <a class="btn primary" href="/pricing.html" id="upgrade-btn">Go Pro</a>
-        <button class="btn" id="manage-btn" onclick="manageBilling()" hidden>Manage subscription</button>
+        <button class="btn" id="manage-btn" onclick="manageBilling(undefined, this)" hidden>Billing &amp; invoices</button>
         <a class="btn" href="/pricing.html#pack" id="pack-btn">Buy a pack</a>
       </div>
       <button class="btn" onclick="signOut()">Sign out</button>
@@ -419,8 +435,20 @@
     }
     $('plan-sub').textContent = planSub;
     $('upgrade-btn').hidden = pro;
-    // Manage subscription: anyone with a Stripe subscription history (cancel, card, invoices)
-    $('manage-btn').hidden = !(p.has_billing_account && p.subscription_status);
+    // Plan actions, right where the plan is shown:
+    //   active        → Change plan · Cancel subscription
+    //   cancelled     → Resume subscription (Pro stays until the end of the paid period either way)
+    //   payment fails → Update card
+    const billing = !!p.has_billing_account;
+    const cancelling = pro && p.cancel_at_period_end;
+    const failing = !pro && ['past_due', 'unpaid'].includes(p.subscription_status);
+    $('pa-change').hidden = !(billing && pro && !cancelling);
+    $('pa-cancel').hidden = !(billing && pro && !cancelling);
+    $('pa-resume').hidden = !(billing && cancelling);
+    $('pa-card').hidden = !(billing && failing);
+    $('plan-actions').hidden = !(billing && (pro || failing));
+    // Billing & invoices: anyone with a Stripe subscription history
+    $('manage-btn').hidden = !(billing && p.subscription_status);
     const credits = p.pack_credits || 0;
     $('row-credits').hidden = credits <= 0;
     $('credits').innerHTML = esc(credits + ' credit' + (credits === 1 ? '' : 's') + ' left')
@@ -456,14 +484,34 @@
   }
 
   // ── Billing ──
-  async function manageBilling() {
-    const msg = $('billing-msg'); msg.textContent = '';
-    $('manage-btn').disabled = true;
-    const r = await SE.api('customer-portal', { method: 'POST' });
+  // flow: 'cancel' | 'change' | 'card' opens the Stripe portal on that screen; null = portal home
+  async function manageBilling(flow, btn) {
+    btn = btn || $('manage-btn');
+    const msg = flow !== undefined ? $('plan-msg') : $('billing-msg');
+    $('plan-msg').textContent = ''; $('billing-msg').textContent = '';
+    btn.disabled = true;
+    try { if (window.posthog && flow) window.posthog.capture('billing_portal_opened', { flow }); } catch (e) {}
+    const r = await SE.api('customer-portal', { method: 'POST', body: flow ? { flow } : {} });
     if (r.ok && r.data && r.data.url) { location.href = r.data.url; return; }
-    $('manage-btn').disabled = false;
+    btn.disabled = false;
     msg.textContent = 'We couldn’t open the billing page. Please try again, or write to hello@getsecondeye.com.';
   }
+
+  // Back from the Stripe portal: the webhook may lag a few seconds, so refresh the plan a few times
+  (function billingReturn() {
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('billing') !== 'return') return;
+    history.replaceState(null, '', location.pathname);
+    SE.ready.then(async () => {
+      if (!SE.session) return;
+      const before = JSON.stringify(SE.profile && [SE.profile.plan, SE.profile.cancel_at_period_end, SE.profile.billing_interval]);
+      for (let tries = 0; tries < 5; tries++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const p = await SE.refreshProfile();
+        if (p && JSON.stringify([p.plan, p.cancel_at_period_end, p.billing_interval]) !== before) return;
+      }
+    });
+  })();
 
   // Back from Stripe Checkout: the webhook may take a few seconds, so poll until the change shows
   (function checkoutReturn() {
@@ -516,7 +564,7 @@
     if (!r.ok) {
       $('delete-btn').disabled = false;
       msg.textContent = r.data && r.data.error === 'subscription_cancel_failed'
-        ? 'We couldn’t cancel your subscription, so nothing was deleted. Cancel it with “Manage subscription” first, or write to hello@getsecondeye.com.'
+        ? 'We couldn’t cancel your subscription, so nothing was deleted. Use “Cancel subscription” under your plan first, or write to hello@getsecondeye.com.'
         : 'Something went wrong. Nothing was deleted. Please try again or write to hello@getsecondeye.com.';
       return;
     }
