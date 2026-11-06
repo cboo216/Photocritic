@@ -185,7 +185,7 @@
     })
 </script>
 <style>
-  .acct { max-width: 620px; margin: 0 auto; padding: 48px var(--gutter) 20px; }
+  .acct { max-width: 880px; margin: 0 auto; padding: 48px var(--gutter) 20px; }
   .acct h1 { font-size: clamp(26px, 4vw, 34px); font-weight: 400; color: var(--blue-dark); letter-spacing: -0.02em; margin-bottom: 24px; }
   .panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 8px 24px; margin-bottom: 18px; }
   .row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
@@ -240,7 +240,10 @@
   .hist-head { display: flex; justify-content: space-between; align-items: baseline; margin: 34px 0 14px; gap: 12px; }
   .hist-head h2 { font-size: 20px; font-weight: 600; color: var(--blue-dark); letter-spacing: -0.01em; }
   .hist-head span { font-size: 12.5px; color: var(--ink-light); }
-  .hist { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  /* History: 4 per row on desktop, 3 on tablets, 2 on phones */
+  .hist { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  @media (max-width: 860px) { .hist { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .hist { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
   .hcard { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; text-align: left; font: inherit; color: inherit; padding: 0; transition: border-color .15s, transform .1s; }
   .hcard:hover { border-color: var(--blue-mid); transform: translateY(-1px); }
   .hthumb { position: relative; aspect-ratio: 4 / 3; background: var(--blue-light); display: flex; align-items: center; justify-content: center; color: var(--ink-light); font-size: 11.5px; }
