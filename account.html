@@ -578,7 +578,7 @@
   }
 
   // ── My critiques (read straight from Supabase; row-level security limits it to the user's own rows) ──
-  const DIMS = [['composition','Composition'],['light','Light'],['sharpness','Sharpness'],['color','Colour'],['storytelling','Storytelling'],['originality','Originality']];
+  const DIMS = [['composition','Composition'],['light','Light & exposure'],['sharpness','Technique'],['color','Colour & tone'],['storytelling','Storytelling'],['originality','Creativity']];
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const scoreColor = (s) => s >= 8 ? '#2D6A2D' : s >= 6 ? '#1C6E6A' : s >= 4 ? '#8A5A00' : '#8A1F1F';
   const scoreLabel = (s) => s >= 10 ? 'World-class' : s >= 8 ? 'Excellent' : s === 7 ? 'Strong' : s === 6 ? 'Competent' : s >= 4 ? 'Needs work' : 'Snapshot';
