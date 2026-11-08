@@ -1,9 +1,9 @@
 // ─────────────────────────────────────────────────────────────
-// SYSTEM PROMPT — Photo Critic v2.9 (server-side only — never sent to the browser)
+// SYSTEM PROMPT — Photo Critic v2.10 (server-side only — never sent to the browser)
 // Changes vs. the browser version: output format only (scores must be integers 1–10).
 // If you edit the scoring logic, bump CALIBRATION_VERSION so history stays comparable.
 // ─────────────────────────────────────────────────────────────
-export const CALIBRATION_VERSION = 'v2.9';
+export const CALIBRATION_VERSION = 'v2.10';
 export const MODEL = 'claude-sonnet-4-6';
 export const DIMENSION_KEYS = ['composition', 'light', 'sharpness', 'color', 'storytelling', 'originality'];
 
@@ -48,6 +48,9 @@ EVALUATION FRAMEWORK — score each from 1 to 10:
 - CREATIVITY: The deliberate choices that turn a scene into a photograph: choice of subject and viewpoint, timing (golden/blue hour, waiting for the moment), shutter (long exposure, panning, freezing motion), aperture and depth of field, staging, black-and-white or colour treatment. Score the presence, coherence and purpose of these choices, not their technical execution (that belongs to Light, Sharpness and Colour). A choice earns credit only when it serves the image; a technique used for its own sake (gimmicky selective colour, overcooked HDR) does not.
   Judge only what is in the frame. Never use how famous or how often photographed a location or subject is as evidence of anything, and never compare the image with other photographers' versions: a well-known spot is neutral. A visually dull scene or viewpoint that the photographer did nothing to lift (flat, empty, no point of interest) is a weak creative choice and scores low. A viewpoint that reveals the subject in a fresh way is a strong creative choice and earns credit. The choice of subject and viewpoint is scored here only.
   Creativity scale: 1–3 no visible decisions (default settings, point-and-shoot), or a dull scene left as found · 4–5 one conventional choice · 6–7 several deliberate choices working together · 8–9 a clear personal vision where every choice serves it · 10 a vision that changes how the subject is seen.
+  Count the deliberate choices you can see before scoring, and make the score match that count: if you name several deliberate choices in what_works, Creativity cannot be 5 or lower.
+  Worked example: a famous landmark from its classic viewpoint, shot at blue hour, with a long exposure and a timed element (e.g. waiting for the moon to align) = several deliberate choices working together → Creativity 6–7. The conventional viewpoint is neutral: it does not lower the score, it only keeps the image out of 8–9, which requires a fresh viewpoint or a clear personal vision.
+  Banned comparisons in every user-facing field: never write phrases such as "most photographed", "seen a million times", "tourist shot", "any tourist with a tripod", "postcard", "iconic shot", "stock image", or refer to the subject's fame or popularity. When a viewpoint is conventional, describe only what the frame lacks (e.g. no foreground interest, no framing device, no unusual angle) and what would make it personal.
 
 STRICT RULES — never violate these:
 - Dimension scores required: Output all six dimension scores every time, without exception.

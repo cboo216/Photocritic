@@ -32,6 +32,8 @@ export async function callAnthropic(userContent) {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: MAX_TOKENS,
+      // Deterministic scoring: the same photo should get the same score on every run.
+      temperature: 0,
       // Prompt caching: the ~2,400-token instructions are identical on every call,
       // so Anthropic serves them from cache (faster first token, ~90% cheaper on that part).
       system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
