@@ -110,6 +110,8 @@
   .price-note { font-size: 12.5px; color: var(--ink-mid); min-height: 18px; }
   .price-note .strike { color: var(--ink-light); text-decoration: line-through; margin-right: 6px; }
   .price-note .one-time { font-weight: 600; color: var(--blue-mid); white-space: nowrap; }
+  /* Savings: same green pill as the "Save 17%" flag */
+  .price-note .save-amt { font-weight: 600; color: var(--green); background: var(--green-bg); border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
 
   .cta {
     font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: 0.01em;
@@ -137,7 +139,7 @@
     font-family: inherit; font-size: 14px; color: var(--ink);
     border: 1.5px solid var(--border-mid); border-radius: var(--radius-md); background: var(--white);
   }
-  .wl input:focus { outline: none; border-color: var(--blue-mid); }
+  .wl input:focus { border-color: var(--blue-mid); }
   .wl-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; color: var(--ink-mid); line-height: 1.45; margin: 4px 0 10px; cursor: pointer; }
   .wl-consent input { margin-top: 2px; flex-shrink: 0; }
   .wl-consent a { color: var(--blue-mid); }
@@ -299,7 +301,7 @@
         <span class="strike" id="pro-strike" style="display:none"></span>
         <span class="per" id="pro-per">/ year</span>
       </div>
-      <div class="price-note" id="pro-note">Billed yearly · <span class="one-time">Save 9.80 €</span></div>
+      <div class="price-note" id="pro-note">Billed yearly · <span class="save-amt">Save 9.80 €</span></div>
       </div>
       <div class="c-action">
       <button class="cta primary" id="pro-cta" onclick="buyPro()">Go Pro</button>
@@ -329,7 +331,7 @@
         <span class="strike" id="studio-strike" style="display:none"></span>
         <span class="per" id="studio-per">/ year</span>
       </div>
-      <div class="price-note" id="studio-note">Billed yearly · <span class="one-time">Save 24 €</span></div>
+      <div class="price-note" id="studio-note">Billed yearly · <span class="save-amt">Save 24 €</span></div>
       </div>
       <div class="c-action">
       <button class="cta ghost" id="studio-cta" onclick="openWaitlist()" aria-expanded="false" aria-controls="studio-wl">Join the waitlist</button>
@@ -455,8 +457,8 @@
   // Pro and Studio follow the billing period. Default: yearly.
   const BILLING = {
     // Yearly saving is shown in the note (same style as "One-time payment"), not as a strike-through price
-    pro:    { year: ['49 €',  '', 'Billed yearly · <span class="one-time">Save 9.80 €</span>'],  month: '4.90 €' },
-    studio: { year: ['120 €', '', 'Billed yearly · <span class="one-time">Save 24 €</span>'], month: '12 €' },
+    pro:    { year: ['49 €',  '', 'Billed yearly · <span class="save-amt">Save 9.80 €</span>'],  month: '4.90 €' },
+    studio: { year: ['120 €', '', 'Billed yearly · <span class="save-amt">Save 24 €</span>'], month: '12 €' },
   };
   let billing = 'year';
   function setBilling(period) {

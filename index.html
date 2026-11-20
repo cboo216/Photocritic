@@ -189,7 +189,7 @@
       .landing-col--right .btn-submit { margin-top: auto; }
       /* Keeps a minimum gap above the button once "Add context" is open and the
          auto margin has no free space left to absorb */
-      .landing-col--right .see-example { margin-bottom: 16px; }
+      .landing-col--right .see-example { margin-bottom: 2px; }   /* 16px visual gap minus the 14px hit-area padding */
 
       /* Quota line hangs just below the button, out of the flow, so the column ends at the
          button's bottom edge and the upload frame lines up with the button itself */
@@ -344,7 +344,6 @@
       background: var(--white);
       border: 1.5px solid var(--border-mid);
       border-radius: var(--radius-md);
-      outline: none;
       cursor: pointer;
       appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892AA' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -366,7 +365,6 @@
       background: var(--white);
       border: 1.5px solid var(--border-mid);
       border-radius: var(--radius-md);
-      outline: none;
       resize: vertical;
       max-width: 100%;
       min-height: 72px;
@@ -419,7 +417,7 @@
     .context-toggle {
       display: inline-flex; align-items: center; gap: 6px;
       align-self: flex-start;
-      background: none; border: none; padding: 4px 0; margin: -6px 0 0;
+      background: none; border: none; padding: 14px 0; margin: -16px 0 -10px;   /* 44px tall hit area, same visual spacing */
       font-family: 'Montserrat', sans-serif;
       font-size: 13px; font-weight: 500;
       color: var(--blue-mid);
@@ -491,7 +489,7 @@
     .ex-try { margin-top: 14px; background: var(--blue-light); border-radius: var(--radius-md); padding: 4px 16px 14px; }
     .ex-try p { font-size: 13.5px; color: var(--ink); line-height: 1.6; }
 
-    .see-example { display: inline-block; font-size: 13px; color: var(--blue-mid); margin: 10px 0 0; }
+    .see-example { display: inline-block; font-size: 13px; color: var(--blue-mid); padding: 14px 0; margin: -4px 0 -14px; }   /* 44px hit area */
     .see-example:hover { color: var(--blue-dark); }
 
     @media (max-width: 760px) {
