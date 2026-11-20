@@ -20,6 +20,7 @@
   <meta property="og:image" content="https://getsecondeye.com/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Second Eye: a gull photo scored 8 out of 10, Excellent, next to the headline How good is your photography, really?">
   <meta property="og:locale" content="en_US">
 
   <!-- Twitter / X card -->
@@ -29,7 +30,9 @@
   <meta name="twitter:image" content="https://getsecondeye.com/og-image.png">
 
   <!-- Favicon -->
-    <link rel="icon" href="img/Favicon.png" type="image/png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/img/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
   <!-- Structured data: the app + an answer-shaped FAQ for AI/GEO discovery -->
   <script type="application/ld+json">
@@ -284,6 +287,13 @@
       font-weight: 500;
       color: var(--ink);
       margin-bottom: 4px;
+    }
+
+    /* Touch screens can't drag files in: show "Tap to choose" instead */
+    .up-touch { display: none; }
+    @media (hover: none) and (pointer: coarse) {
+      .up-pointer { display: none; }
+      .up-touch { display: inline; }
     }
 
     .upload-hint {
@@ -1044,7 +1054,7 @@
 
 <header>
   <a class="logo-wrap" href="/">
-    <img src="https://getsecondeye.com/img/secondeye2.png" alt="Second Eye" class="logo-img">
+    <img src="/img/secondeye-header.png" alt="Second Eye" class="logo-img" width="236" height="40">
   </a>
   <nav class="header-nav" aria-label="Primary">
     <a class="header-link" href="/pricing.html">Pricing</a>
@@ -1078,7 +1088,7 @@
           <label class="field-label" for="file-input">Your photo</label>
           <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Upload photo" onclick="document.getElementById('file-input').click()" onkeydown="if(event.key==='Enter'||event.key===' ')document.getElementById('file-input').click()">
             <div class="upload-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></div>
-            <div class="upload-primary">Drag &amp; drop a photo or browse</div>
+            <div class="upload-primary"><span class="up-pointer">Drag &amp; drop a photo or browse</span><span class="up-touch">Tap to choose a photo</span></div>
             <div class="upload-hint">JPG · PNG · WEBP · HEIC — not RAW or DNG</div>
           </div>
           <div class="field-error" id="photo-missing" role="alert">Add a photo to get your critique.</div>
@@ -2009,7 +2019,7 @@ function resetForm(keepPhoto) {
   document.getElementById('exif-badge-wrap').innerHTML = '';
   const zone = document.getElementById('upload-zone');
   zone.classList.remove('has-image');
-  zone.innerHTML = `<div class="upload-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></div><div class="upload-primary">Drag &amp; drop a photo or browse</div><div class="upload-hint">JPG · PNG · WEBP · HEIC — not RAW or DNG</div>`;
+  zone.innerHTML = `<div class="upload-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></div><div class="upload-primary"><span class="up-pointer">Drag &amp; drop a photo or browse</span><span class="up-touch">Tap to choose a photo</span></div><div class="upload-hint">JPG · PNG · WEBP · HEIC — not RAW or DNG</div>`;
   setFieldError('field-photo', false);
   setFieldError('field-type', false);
   const ctxBtn = document.getElementById('context-toggle');
