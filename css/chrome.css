@@ -20,6 +20,7 @@ header {
   font-family: 'Montserrat', sans-serif;
   font-size: 14px; font-weight: 500; color: var(--ink-mid);
   text-decoration: none; white-space: nowrap; transition: color 0.15s;
+  padding-block: 14px; margin-block: -14px;   /* 44px tall hit area without moving anything */
 }
 .header-link:hover {
   color: var(--blue-dark); text-decoration: underline;
@@ -28,14 +29,14 @@ header {
 .header-link.active { color: var(--blue-dark); font-weight: 600; }
 .header-nav .header-cta {
   color: var(--white); background: var(--blue); font-weight: 600;
-  padding: 9px 18px; border-radius: var(--radius-md); transition: background 0.15s;
+  padding: 9px 18px; margin-block: 0; border-radius: var(--radius-md); transition: background 0.15s;
 }
 .header-nav .header-cta:hover { background: var(--blue-dark); color: var(--white); text-decoration: none; }
 
 /* Burger (mobile) */
 .burger {
   display: none; flex-direction: column; justify-content: center; gap: 5px;
-  width: 42px; height: 42px; padding: 9px;
+  width: 44px; height: 44px; padding: 10px;
   background: none; border: none; cursor: pointer; flex-shrink: 0;
 }
 .burger span {
@@ -57,7 +58,7 @@ header {
   z-index: 30;
 }
 .mobile-menu.open { display: flex; }
-.mobile-menu .header-link { padding: 12px 14px; border-radius: var(--radius-sm); font-size: 15px; }
+.mobile-menu .header-link { padding: 13px 14px; margin-block: 0; border-radius: var(--radius-sm); font-size: 15px; }
 .mobile-menu .header-link:hover { background: var(--blue-light); text-decoration: none; color: var(--blue-dark); }
 
 /* ── FOOTER ── */
@@ -69,7 +70,10 @@ footer { border-top: 1px solid var(--border); background: var(--blue-light); col
 .footer-brand { min-width: 0; }
 .footer-name { font-size: 15px; font-weight: 600; color: var(--blue-dark); letter-spacing: 0.01em; }
 .footer-tagline { font-size: 13px; color: var(--ink-light); margin-top: 4px; }
-.footer-links { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+/* Each link is a 44px row; the -14px margin keeps the first/last text where it was */
+.footer-links { display: flex; flex-direction: column; gap: 0; margin: -14px 0; font-size: 13px; }
+.footer-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.footer-bottom a { padding-block: 14px; }   /* inline link: taller hit area, no layout change */
 footer a { color: var(--blue-mid); text-decoration: none; transition: color 0.15s; }
 footer a:hover { color: var(--blue-dark); text-decoration: underline; }
 .footer-bottom { border-top: 1px solid var(--border-mid); text-align: center; font-size: 11px; color: var(--ink-light); padding: 14px var(--gutter); }
@@ -83,4 +87,10 @@ footer a:hover { color: var(--blue-dark); text-decoration: underline; }
 }
 @media (prefers-reduced-motion: reduce) {
   .burger span { transition: none; }
+}
+
+/* ── FOCUS ── one visible keyboard ring for every interactive element, on every page */
+a:focus-visible, button:focus-visible, summary:focus-visible, [role="button"]:focus-visible,
+select:focus-visible, textarea:focus-visible, input:focus-visible {
+  outline: 2px solid var(--blue-mid); outline-offset: 2px;
 }
