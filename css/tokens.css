@@ -11,7 +11,7 @@
   /* Ink / text */
   --ink:        #1A1E2E;
   --ink-mid:    #4A5168;
-  --ink-light:  #8892AA;
+  --ink-light:  #636C85;   /* was #8892AA: raised to pass WCAG AA (4.5:1) on white, blue-pale and blue-light */
 
   /* Surface / line */
   --white:      #FFFFFF;
