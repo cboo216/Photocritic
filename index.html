@@ -548,21 +548,66 @@
       gap: 12px;
     }
 
+    .dimensions-preview-head {
+      display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+      gap: 4px 16px; margin-bottom: 16px;
+    }
+    .dimensions-preview-head .dimensions-preview-title { margin-bottom: 0; }
+    .dimensions-hint { font-size: 12.5px; color: var(--ink-mid); }
+
+    /* Card = button; front (icon + name) and back (description) share one grid cell,
+       so the card is as tall as its longer face and nothing jumps when it turns */
     .dimension-card {
+      display: grid;
+      font: inherit; color: inherit; width: 100%;
       background: var(--white);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 16px 12px;
+      min-height: 96px;
       text-align: center;
+      cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
-
-    .dimension-card:hover {
-      border-color: var(--blue-mid);
-      background: var(--blue-pale);
+    .dimension-front, .dimension-back {
+      grid-area: 1 / 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.2s ease, visibility 0.2s;
+    }
+    .dimension-back {
+      font-size: 12.5px; line-height: 1.45; color: var(--ink-mid);
+      opacity: 0; visibility: hidden;
+    }
+    .dimension-back-name { font-size: 12px; font-weight: 600; color: var(--blue-dark); margin-bottom: 4px; }
+    .dimension-card[aria-expanded="true"] { border-color: var(--blue-mid); background: var(--blue-pale); }
+    .dimension-card[aria-expanded="true"] .dimension-front { opacity: 0; visibility: hidden; }
+    .dimension-card[aria-expanded="true"] .dimension-back { opacity: 1; visibility: visible; }
+    @media (hover: hover) {
+      .dimension-card:hover { border-color: var(--blue-mid); background: var(--blue-pale); }
+      .dimension-card:hover .dimension-front { opacity: 0; visibility: hidden; }
+      .dimension-card:hover .dimension-back { opacity: 1; visibility: visible; }
+    }
+    .dimension-card:focus-visible { outline: 2px solid var(--blue-mid); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) {
+      .dimension-front, .dimension-back { transition: none; }
     }
 
+    /* CTA after the example critiques */
+    .examples-cta {
+      margin-top: 28px; padding: 28px 20px;
+      text-align: center;
+      background: var(--blue-pale);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .examples-cta-title { font-size: 19px; font-weight: 600; color: var(--blue-dark); letter-spacing: -0.01em; margin-bottom: 6px; }
+    .examples-cta-sub { font-size: 14.5px; color: var(--ink-mid); margin-bottom: 18px; }
+    .examples-cta .btn-submit { width: auto; min-width: 260px; margin-top: 0; padding: 14px 28px; }
+    .examples-cta-note { font-size: 12.5px; color: var(--ink-mid); margin-top: 10px; }
+    @media (max-width: 480px) { .examples-cta .btn-submit { width: 100%; min-width: 0; } }
+
     .dimension-icon {
+      display: block;
       width: 26px; height: 26px;
       margin: 0 auto 10px;
       color: var(--blue);
@@ -570,6 +615,7 @@
     .dimension-icon svg { width: 100%; height: 100%; }
 
     .dimension-name {
+      display: block;
       font-size: 12px;
       font-weight: 500;
       color: var(--ink);
@@ -1085,32 +1131,53 @@
 
     <!-- DIMENSIONS PREVIEW -->
     <div class="dimensions-preview">
-      <div class="dimensions-preview-title">You'll get scored on 6 dimensions</div>
+      <div class="dimensions-preview-head">
+        <div class="dimensions-preview-title">You'll get scored on 6 dimensions</div>
+        <div class="dimensions-hint">Hover or tap a card for details</div>
+      </div>
       <div class="dimensions-grid">
-        <div class="dimension-card">
-          <div class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></div>
-          <div class="dimension-name">Composition</div>
-        </div>
-        <div class="dimension-card">
-          <div class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div>
-          <div class="dimension-name">Light &amp; exposure</div>
-        </div>
-        <div class="dimension-card">
-          <div class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
-          <div class="dimension-name">Technique</div>
-        </div>
-        <div class="dimension-card">
-          <div class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="5"/><circle cx="15" cy="9" r="5"/><circle cx="12" cy="15" r="5"/></svg></div>
-          <div class="dimension-name">Colour &amp; tone</div>
-        </div>
-        <div class="dimension-card">
-          <div class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></div>
-          <div class="dimension-name">Storytelling</div>
-        </div>
-        <div class="dimension-card">
-          <div class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.6 5.6 1.9-5.6 1.9L12 18l-1.9-5.6-5.6-1.9 5.6-1.9z"/><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg></div>
-          <div class="dimension-name">Creativity</div>
-        </div>
+        <button type="button" class="dimension-card" aria-expanded="false" aria-controls="dim-desc-1" data-dim="Composition">
+          <span class="dimension-front">
+            <span class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></span>
+            <span class="dimension-name">Composition</span>
+          </span>
+          <span class="dimension-back" id="dim-desc-1"><span class="dimension-back-name">Composition</span>Framing, balance and where the eye travels through the frame.</span>
+        </button>
+        <button type="button" class="dimension-card" aria-expanded="false" aria-controls="dim-desc-2" data-dim="Light & exposure">
+          <span class="dimension-front">
+            <span class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+            <span class="dimension-name">Light &amp; exposure</span>
+          </span>
+          <span class="dimension-back" id="dim-desc-2"><span class="dimension-back-name">Light &amp; exposure</span>Quality and direction of light, and how well highlights and shadows hold.</span>
+        </button>
+        <button type="button" class="dimension-card" aria-expanded="false" aria-controls="dim-desc-3" data-dim="Technique">
+          <span class="dimension-front">
+            <span class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></span>
+            <span class="dimension-name">Technique</span>
+          </span>
+          <span class="dimension-back" id="dim-desc-3"><span class="dimension-back-name">Technique</span>Focus, sharpness, motion and the camera choices behind them.</span>
+        </button>
+        <button type="button" class="dimension-card" aria-expanded="false" aria-controls="dim-desc-4" data-dim="Colour & tone">
+          <span class="dimension-front">
+            <span class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="5"/><circle cx="15" cy="9" r="5"/><circle cx="12" cy="15" r="5"/></svg></span>
+            <span class="dimension-name">Colour &amp; tone</span>
+          </span>
+          <span class="dimension-back" id="dim-desc-4"><span class="dimension-back-name">Colour &amp; tone</span>Palette, white balance, contrast and the mood of the edit.</span>
+        </button>
+        <button type="button" class="dimension-card" aria-expanded="false" aria-controls="dim-desc-5" data-dim="Storytelling">
+          <span class="dimension-front">
+            <span class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></span>
+            <span class="dimension-name">Storytelling</span>
+          </span>
+          <span class="dimension-back" id="dim-desc-5"><span class="dimension-back-name">Storytelling</span>Whether the image says something: a moment, an emotion, an idea.</span>
+        </button>
+        <button type="button" class="dimension-card" aria-expanded="false" aria-controls="dim-desc-6" data-dim="Creativity">
+          <span class="dimension-front">
+            <span class="dimension-icon"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 5.6 5.6 1.9-5.6 1.9L12 18l-1.9-5.6-5.6-1.9 5.6-1.9z"/><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg></span>
+            <span class="dimension-name">Creativity</span>
+          </span>
+          <span class="dimension-back" id="dim-desc-6"><span class="dimension-back-name">Creativity</span>A fresh angle or vision that makes the photo yours.</span>
+        </button>
       </div>
     </div>
 
@@ -1242,6 +1309,13 @@
             <p>Next time you find a perch like this, drop your angle and step back so the rock becomes a smaller, darker wedge in one corner and the horizon sits nearer the lower third. In the edit, add contrast to the bird only. Success looks like this: the gull is instantly the brightest, crispest thing in the frame, and the rock reads as a launchpad rather than a second subject.</p>
           </div>
         </div>
+      </div>
+
+      <div class="examples-cta">
+        <h2 class="examples-cta-title">Now see how your own photo scores</h2>
+        <p class="examples-cta-sub">Same six dimensions, same honesty, and the one change to make next.</p>
+        <button type="button" class="btn-submit" id="examples-cta-btn" onclick="ctaFromExamples()">Critique my photo</button>
+        <p class="examples-cta-note" data-auth="out">Free account: 3 critiques a month. No card needed.</p>
       </div>
     </section>
   </div>
@@ -1964,6 +2038,24 @@ document.addEventListener('keydown', e => {
   const i = tabs.indexOf(e.target);
   const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
   next.focus(); next.click();
+});
+// CTA under the examples: back to the uploader; opens the file picker if no photo is chosen yet
+function ctaFromExamples() {
+  track('examples_cta_clicked');
+  const zone = document.getElementById('upload-zone');
+  const hasPhoto = zone && zone.classList.contains('has-image');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('form-view').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  if (!hasPhoto) document.getElementById('file-input').click();   // still inside the click gesture
+  else document.getElementById('photo-type').focus({ preventScroll: true });
+}
+// Dimension cards: tap / click / Enter turns the card to show what the dimension covers
+document.addEventListener('click', e => {
+  const card = e.target.closest && e.target.closest('.dimension-card');
+  if (!card) return;
+  const open = card.getAttribute('aria-expanded') !== 'true';
+  card.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) track('dimension_card_opened', { dimension: card.dataset.dim });
 });
 document.addEventListener('toggle', e => {
   if (e.target.classList && e.target.classList.contains('ex-more') && e.target.open) {
